@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+Debug/
+Release/
+*.user
+*.suo
+*.sln.docstates
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+*.egg-info/
+
+# Other
+*.log
+*.tmp
+*.temp
+Thumbs.db
+Desktop.ini

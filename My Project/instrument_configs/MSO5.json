@@ -1,0 +1,1308 @@
+{
+  "meta": {
+    "manufacturer": "Rigol",
+    "deviceType": "oscilloscope",
+    "models": ["MSO5"]
+  },
+  "commands": {
+    "identification": {
+      "command": "*IDN?"
+    },
+    "reset": {
+      "command": "*RST"
+    },
+    "clear_status": {
+      "command": "*CLS"
+    },
+    "operation_complete": {
+      "command": "*OPC"
+    },
+    "operation_complete_query": {
+      "command": "*OPC?"
+    },
+    "wait": {
+      "command": "*WAI"
+    },
+    "run": {
+      "command": "RUN"
+    },
+    "single": {
+      "command": "SINGle"
+    },
+    "stop": {
+      "command": "STOP"
+    },
+    "auto_scale": {
+      "command": "SYSTem:AUToscale"
+    },
+    "force_trigger": {
+      "command": "TFORce"
+    },
+    "get_waveform": {
+      "command": "WAVeform:DATA?"
+    },
+    "waveform_source": {
+      "command": "WAVeform:SOURce"
+    },
+    "waveform_source_query": {
+      "command": "WAVeform:SOURce?"
+    },
+    "waveform_mode": {
+      "command": "WAVeform:MODE"
+    },
+    "waveform_mode_query": {
+      "command": "WAVeform:MODE?"
+    },
+    "waveform_format": {
+      "command": "WAVeform:FORMat"
+    },
+    "waveform_format_query": {
+      "command": "WAVeform:FORMat?"
+    },
+    "waveform_points": {
+      "command": "WAVeform:POINts"
+    },
+    "waveform_points_query": {
+      "command": "WAVeform:POINts?"
+    },
+    "waveform_start": {
+      "command": "WAVeform:STARt"
+    },
+    "waveform_start_query": {
+      "command": "WAVeform:STARt?"
+    },
+    "waveform_stop": {
+      "command": "WAVeform:STOP"
+    },
+    "waveform_stop_query": {
+      "command": "WAVeform:STOP?"
+    },
+    "waveform_x_increment": {
+      "command": "WAVeform:XINCrement?"
+    },
+    "waveform_x_origin": {
+      "command": "WAVeform:XORigin?"
+    },
+    "waveform_x_reference": {
+      "command": "WAVeform:XREFerence?"
+    },
+    "waveform_y_increment": {
+      "command": "WAVeform:YINCrement?"
+    },
+    "waveform_y_origin": {
+      "command": "WAVeform:YORigin?"
+    },
+    "waveform_y_reference": {
+      "command": "WAVeform:YREFerence?"
+    },
+    "waveform_preamble": {
+      "command": "WAVeform:PREamble?"
+    },
+    "waveform_status": {
+      "command": "WAVeform:STATus?"
+    },
+    "waveform_reset": {
+      "command": "WAVeform:RESet"
+    },
+    "channel_display": {
+      "command": "CHANnel{channel}:DISPlay"
+    },
+    "channel_display_query": {
+      "command": "CHANnel{channel}:DISPlay?"
+    },
+    "channel_scale": {
+      "command": "CHANnel{channel}:SCALe"
+    },
+    "channel_scale_query": {
+      "command": "CHANnel{channel}:SCALe?"
+    },
+    "channel_offset": {
+      "command": "CHANnel{channel}:OFFSet"
+    },
+    "channel_offset_query": {
+      "command": "CHANnel{channel}:OFFSet?"
+    },
+    "channel_coupling": {
+      "command": "CHANnel{channel}:COUPling"
+    },
+    "channel_coupling_query": {
+      "command": "CHANnel{channel}:COUPling?"
+    },
+    "channel_bandwidth": {
+      "command": "CHANnel{channel}:BWLimit"
+    },
+    "channel_bandwidth_query": {
+      "command": "CHANnel{channel}:BWLimit?"
+    },
+    "channel_invert": {
+      "command": "CHANnel{channel}:INVert"
+    },
+    "channel_invert_query": {
+      "command": "CHANnel{channel}:INVert?"
+    },
+    "channel_probe": {
+      "command": "CHANnel{channel}:PROBe"
+    },
+    "channel_probe_query": {
+      "command": "CHANnel{channel}:PROBe?"
+    },
+    "channel_probe_delay": {
+      "command": "CHANnel{channel}:PROBe:DELAY"
+    },
+    "channel_probe_delay_query": {
+      "command": "CHANnel{channel}:PROBe:DELAY?"
+    },
+    "channel_probe_bias": {
+      "command": "CHANnel{channel}:PROBe:BIAS"
+    },
+    "channel_probe_bias_query": {
+      "command": "CHANnel{channel}:PROBe:BIAS?"
+    },
+    "channel_units": {
+      "command": "CHANnel{channel}:UNITs"
+    },
+    "channel_units_query": {
+      "command": "CHANnel{channel}:UNITs?"
+    },
+    "channel_vernier": {
+      "command": "CHANnel{channel}:VERNier"
+    },
+    "channel_vernier_query": {
+      "command": "CHANnel{channel}:VERNier?"
+    },
+    "channel_impedance": {
+      "command": "CHANnel{channel}:IMPedance"
+    },
+    "channel_impedance_query": {
+      "command": "CHANnel{channel}:IMPedance?"
+    },
+    "timebase_scale": {
+      "command": "TIMebase:SCALe"
+    },
+    "timebase_scale_query": {
+      "command": "TIMebase:SCALe?"
+    },
+    "timebase_offset": {
+      "command": "TIMebase:OFFSet"
+    },
+    "timebase_offset_query": {
+      "command": "TIMebase:OFFSet?"
+    },
+    "timebase_mode": {
+      "command": "TIMebase:MODE"
+    },
+    "timebase_mode_query": {
+      "command": "TIMebase:MODE?"
+    },
+    "timebase_vernier": {
+      "command": "TIMebase:VERNier"
+    },
+    "timebase_vernier_query": {
+      "command": "TIMebase:VERNier?"
+    },
+    "timebase_delay_enable": {
+      "command": "TIMebase:DELay:ENABle"
+    },
+    "timebase_delay_enable_query": {
+      "command": "TIMebase:DELay:ENABle?"
+    },
+    "timebase_delay_offset": {
+      "command": "TIMebase:DELay:OFFSet"
+    },
+    "timebase_delay_offset_query": {
+      "command": "TIMebase:DELay:OFFSet?"
+    },
+    "timebase_delay_scale": {
+      "command": "TIMebase:DELay:SCALe"
+    },
+    "timebase_delay_scale_query": {
+      "command": "TIMebase:DELay:SCALe?"
+    },
+    "trigger_mode": {
+      "command": "TRIGger:MODE"
+    },
+    "trigger_mode_query": {
+      "command": "TRIGger:MODE?"
+    },
+    "trigger_source": {
+      "command": "TRIGger:EDGE:SOURce"
+    },
+    "trigger_source_query": {
+      "command": "TRIGger:EDGE:SOURce?"
+    },
+    "trigger_level": {
+      "command": "TRIGger:EDGE:LEVel"
+    },
+    "trigger_level_query": {
+      "command": "TRIGger:EDGE:LEVel?"
+    },
+    "trigger_slope": {
+      "command": "TRIGger:EDGE:SLOPe"
+    },
+    "trigger_slope_query": {
+      "command": "TRIGger:EDGE:SLOPe?"
+    },
+    "trigger_coupling": {
+      "command": "TRIGger:COUPling"
+    },
+    "trigger_coupling_query": {
+      "command": "TRIGger:COUPling?"
+    },
+    "trigger_sweep": {
+      "command": "TRIGger:SWEep"
+    },
+    "trigger_sweep_query": {
+      "command": "TRIGger:SWEep?"
+    },
+    "trigger_holdoff": {
+      "command": "TRIGger:HOLDoff"
+    },
+    "trigger_holdoff_query": {
+      "command": "TRIGger:HOLDoff?"
+    },
+    "trigger_noise_reject": {
+      "command": "TRIGger:NREJect"
+    },
+    "trigger_noise_reject_query": {
+      "command": "TRIGger:NREJect?"
+    },
+    "trigger_position": {
+      "command": "TRIGger:POSition?"
+    },
+    "trigger_status": {
+      "command": "TRIGger:STATus?"
+    },
+    "trigger_force": {
+      "command": "TFORce"
+    },
+    "measurement_source": {
+      "command": "MEASure:SOURce"
+    },
+    "measurement_source_query": {
+      "command": "MEASure:SOURce?"
+    },
+    "measurement_item": {
+      "command": "MEASure:ITEM"
+    },
+    "measurement_item_query": {
+      "command": "MEASure:ITEM?"
+    },
+    "measurement_value": {
+      "command": "MEASure:VALue?"
+    },
+    "measurement_vpp": {
+      "command": "MEASure:VPP?"
+    },
+    "measurement_vmax": {
+      "command": "MEASure:VMAX?"
+    },
+    "measurement_vmin": {
+      "command": "MEASure:VMIN?"
+    },
+    "measurement_vamp": {
+      "command": "MEASure:VAMP?"
+    },
+    "measurement_vrms": {
+      "command": "MEASure:VRMS?"
+    },
+    "measurement_vavg": {
+      "command": "MEASure:VAVG?"
+    },
+    "measurement_vtop": {
+      "command": "MEASure:VTOP?"
+    },
+    "measurement_vbase": {
+      "command": "MEASure:VBASe?"
+    },
+    "measurement_frequency": {
+      "command": "MEASure:FREQuency?"
+    },
+    "measurement_period": {
+      "command": "MEASure:PERiod?"
+    },
+    "measurement_rise": {
+      "command": "MEASure:RTIMe?"
+    },
+    "measurement_fall": {
+      "command": "MEASure:FTIMe?"
+    },
+    "measurement_pwidth": {
+      "command": "MEASure:PWIDth?"
+    },
+    "measurement_nwidth": {
+      "command": "MEASure:NWIDth?"
+    },
+    "measurement_positive_duty": {
+      "command": "MEASure:PDUTy?"
+    },
+    "measurement_negative_duty": {
+      "command": "MEASure:NDUTy?"
+    },
+    "measurement_overshoot": {
+      "command": "MEASure:OVERshoot?"
+    },
+    "measurement_preshoot": {
+      "command": "MEASure:PREShoot?"
+    },
+    "measurement_clear": {
+      "command": "MEASure:CLEar"
+    },
+    "measurement_mode": {
+      "command": "MEASure:MODE"
+    },
+    "measurement_mode_query": {
+      "command": "MEASure:MODE?"
+    },
+    "measurement_type": {
+      "command": "MEASure:TYPE"
+    },
+    "measurement_type_query": {
+      "command": "MEASure:TYPE?"
+    },
+    "measurement_amsource": {
+      "command": "MEASure:AMSource"
+    },
+    "measurement_amsource_query": {
+      "command": "MEASure:AMSource?"
+    },
+    "measurement_statistics_display": {
+      "command": "MEASure:STATistic:DISPlay"
+    },
+    "measurement_statistics_display_query": {
+      "command": "MEASure:STATistic:DISPlay?"
+    },
+    "measurement_statistics_reset": {
+      "command": "MEASure:STATistic:RESet"
+    },
+    "measurement_cursor_region_xa": {
+      "command": "MEASure:CREGion:CAX"
+    },
+    "measurement_cursor_region_xa_query": {
+      "command": "MEASure:CREGion:CAX?"
+    },
+    "measurement_cursor_region_xb": {
+      "command": "MEASure:CREGion:CBX"
+    },
+    "measurement_cursor_region_xb_query": {
+      "command": "MEASure:CREGion:CBX?"
+    },
+    "display_type": {
+      "command": "DISPlay:TYPE"
+    },
+    "display_type_query": {
+      "command": "DISPlay:TYPE?"
+    },
+    "display_grid": {
+      "command": "DISPlay:GRID"
+    },
+    "display_grid_query": {
+      "command": "DISPlay:GRID?"
+    },
+    "display_clear": {
+      "command": "DISPlay:CLEar"
+    },
+    "display_data": {
+      "command": "DISPlay:DATA?"
+    },
+    "display_grading_time": {
+      "command": "DISPlay:GRADing:TIME"
+    },
+    "display_grading_time_query": {
+      "command": "DISPlay:GRADing:TIME?"
+    },
+    "display_waveform_brightness": {
+      "command": "DISPlay:WBRightness"
+    },
+    "display_waveform_brightness_query": {
+      "command": "DISPlay:WBRightness?"
+    },
+    "display_grid_brightness": {
+      "command": "DISPlay:GBRightness"
+    },
+    "display_grid_brightness_query": {
+      "command": "DISPlay:GBRightness?"
+    },
+    "display_rulers": {
+      "command": "DISPlay:RULers"
+    },
+    "display_rulers_query": {
+      "command": "DISPlay:RULers?"
+    },
+    "display_color": {
+      "command": "DISPlay:COLor"
+    },
+    "display_color_query": {
+      "command": "DISPlay:COLor?"
+    },
+    "acquisition_mode": {
+      "command": "ACQuire:MODE"
+    },
+    "acquisition_mode_query": {
+      "command": "ACQuire:MODE?"
+    },
+    "acquisition_type": {
+      "command": "ACQuire:TYPE"
+    },
+    "acquisition_type_query": {
+      "command": "ACQuire:TYPE?"
+    },
+    "acquisition_averages": {
+      "command": "ACQuire:AVERages"
+    },
+    "acquisition_averages_query": {
+      "command": "ACQuire:AVERages?"
+    },
+    "acquisition_memory_depth": {
+      "command": "ACQuire:MDEPth"
+    },
+    "acquisition_memory_depth_query": {
+      "command": "ACQuire:MDEPth?"
+    },
+    "acquisition_sample_rate": {
+      "command": "ACQuire:SRATe?"
+    },
+    "acquisition_anti_alias": {
+      "command": "ACQuire:AALias"
+    },
+    "acquisition_anti_alias_query": {
+      "command": "ACQuire:AALias?"
+    },
+    "acquisition_interleave": {
+      "command": "ACQuire:INTerleave"
+    },
+    "acquisition_interleave_query": {
+      "command": "ACQuire:INTerleave?"
+    },
+    "cursor_mode": {
+      "command": "CURSor:MODE"
+    },
+    "cursor_mode_query": {
+      "command": "CURSor:MODE?"
+    },
+    "cursor_manual_source": {
+      "command": "CURSor:MANual:SOURce"
+    },
+    "cursor_manual_source_query": {
+      "command": "CURSor:MANual:SOURce?"
+    },
+    "cursor_manual_type": {
+      "command": "CURSor:MANual:TYPE"
+    },
+    "cursor_manual_type_query": {
+      "command": "CURSor:MANual:TYPE?"
+    },
+    "cursor_manual_time_unit": {
+      "command": "CURSor:MANual:TUNit"
+    },
+    "cursor_manual_time_unit_query": {
+      "command": "CURSor:MANual:TUNit?"
+    },
+    "cursor_manual_voltage_unit": {
+      "command": "CURSor:MANual:VUNit"
+    },
+    "cursor_manual_voltage_unit_query": {
+      "command": "CURSor:MANual:VUNit?"
+    },
+    "cursor_manual_xa": {
+      "command": "CURSor:MANual:CAX"
+    },
+    "cursor_manual_xa_query": {
+      "command": "CURSor:MANual:CAX?"
+    },
+    "cursor_manual_xb": {
+      "command": "CURSor:MANual:CBX"
+    },
+    "cursor_manual_xb_query": {
+      "command": "CURSor:MANual:CBX?"
+    },
+    "cursor_manual_ya": {
+      "command": "CURSor:MANual:CAY"
+    },
+    "cursor_manual_ya_query": {
+      "command": "CURSor:MANual:CAY?"
+    },
+    "cursor_manual_yb": {
+      "command": "CURSor:MANual:CBY"
+    },
+    "cursor_manual_yb_query": {
+      "command": "CURSor:MANual:CBY?"
+    },
+    "cursor_manual_x_delta": {
+      "command": "CURSor:MANual:XDELta?"
+    },
+    "cursor_manual_y_delta": {
+      "command": "CURSor:MANual:YDELta?"
+    },
+    "cursor_manual_ax_value": {
+      "command": "CURSor:MANual:AXValue?"
+    },
+    "cursor_manual_ay_value": {
+      "command": "CURSor:MANual:AYValue?"
+    },
+    "cursor_manual_bx_value": {
+      "command": "CURSor:MANual:BXValue?"
+    },
+    "cursor_manual_by_value": {
+      "command": "CURSor:MANual:BYValue?"
+    },
+    "cursor_track_source1": {
+      "command": "CURSor:TRACk:SOURce1"
+    },
+    "cursor_track_source1_query": {
+      "command": "CURSor:TRACk:SOURce1?"
+    },
+    "cursor_track_source2": {
+      "command": "CURSor:TRACk:SOURce2"
+    },
+    "cursor_track_source2_query": {
+      "command": "CURSor:TRACk:SOURce2?"
+    },
+    "cursor_track_x_delta": {
+      "command": "CURSor:TRACk:XDELta?"
+    },
+    "cursor_track_y_delta": {
+      "command": "CURSor:TRACk:YDELta?"
+    },
+    "cursor_xy_ax": {
+      "command": "CURSor:XY:AX"
+    },
+    "cursor_xy_ax_query": {
+      "command": "CURSor:XY:AX?"
+    },
+    "cursor_xy_bx": {
+      "command": "CURSor:XY:BX"
+    },
+    "cursor_xy_bx_query": {
+      "command": "CURSor:XY:BX?"
+    },
+    "cursor_xy_ay": {
+      "command": "CURSor:XY:AY"
+    },
+    "cursor_xy_ay_query": {
+      "command": "CURSor:XY:AY?"
+    },
+    "cursor_xy_by": {
+      "command": "CURSor:XY:BY"
+    },
+    "cursor_xy_by_query": {
+      "command": "CURSor:XY:BY?"
+    },
+    "math_display": {
+      "command": "MATH{math}:DISPlay"
+    },
+    "math_display_query": {
+      "command": "MATH{math}:DISPlay?"
+    },
+    "math_operator": {
+      "command": "MATH{math}:OPERator"
+    },
+    "math_operator_query": {
+      "command": "MATH{math}:OPERator?"
+    },
+    "math_source1": {
+      "command": "MATH{math}:SOURce1"
+    },
+    "math_source1_query": {
+      "command": "MATH{math}:SOURce1?"
+    },
+    "math_source2": {
+      "command": "MATH{math}:SOURce2"
+    },
+    "math_source2_query": {
+      "command": "MATH{math}:SOURce2?"
+    },
+    "math_logic_source1": {
+      "command": "MATH{math}:LSOurce1"
+    },
+    "math_logic_source1_query": {
+      "command": "MATH{math}:LSOurce1?"
+    },
+    "math_logic_source2": {
+      "command": "MATH{math}:LSOurce2"
+    },
+    "math_logic_source2_query": {
+      "command": "MATH{math}:LSOurce2?"
+    },
+    "math_scale": {
+      "command": "MATH{math}:SCALe"
+    },
+    "math_scale_query": {
+      "command": "MATH{math}:SCALe?"
+    },
+    "math_offset": {
+      "command": "MATH{math}:OFFSet"
+    },
+    "math_offset_query": {
+      "command": "MATH{math}:OFFSet?"
+    },
+    "math_invert": {
+      "command": "MATH{math}:INVert"
+    },
+    "math_invert_query": {
+      "command": "MATH{math}:INVert?"
+    },
+    "math_reset": {
+      "command": "MATH{math}:RESet"
+    },
+    "math_fft_source": {
+      "command": "MATH{math}:FFT:SOURce"
+    },
+    "math_fft_source_query": {
+      "command": "MATH{math}:FFT:SOURce?"
+    },
+    "math_fft_window": {
+      "command": "MATH{math}:FFT:WINDow"
+    },
+    "math_fft_window_query": {
+      "command": "MATH{math}:FFT:WINDow?"
+    },
+    "math_fft_scale": {
+      "command": "MATH{math}:FFT:SCALe"
+    },
+    "math_fft_scale_query": {
+      "command": "MATH{math}:FFT:SCALe?"
+    },
+    "math_fft_offset": {
+      "command": "MATH{math}:FFT:OFFSet"
+    },
+    "math_fft_offset_query": {
+      "command": "MATH{math}:FFT:OFFSet?"
+    },
+    "math_fft_hscale": {
+      "command": "MATH{math}:FFT:HSCale"
+    },
+    "math_fft_hscale_query": {
+      "command": "MATH{math}:FFT:HSCale?"
+    },
+    "math_fft_center": {
+      "command": "MATH{math}:FFT:HCENter"
+    },
+    "math_fft_center_query": {
+      "command": "MATH{math}:FFT:HCENter?"
+    },
+    "math_fft_unit": {
+      "command": "MATH{math}:FFT:UNIT"
+    },
+    "math_fft_unit_query": {
+      "command": "MATH{math}:FFT:UNIT?"
+    },
+    "math_fft_start": {
+      "command": "MATH{math}:FFT:FREQuency:STARt"
+    },
+    "math_fft_start_query": {
+      "command": "MATH{math}:FFT:FREQuency:STARt?"
+    },
+    "math_fft_end": {
+      "command": "MATH{math}:FFT:FREQuency:END"
+    },
+    "math_fft_end_query": {
+      "command": "MATH{math}:FFT:FREQuency:END?"
+    },
+    "math_filter_type": {
+      "command": "MATH{math}:FILTer:TYPE"
+    },
+    "math_filter_type_query": {
+      "command": "MATH{math}:FILTer:TYPE?"
+    },
+    "reference_display": {
+      "command": "REFerence:DISPlay"
+    },
+    "reference_display_query": {
+      "command": "REFerence:DISPlay?"
+    },
+    "reference_source": {
+      "command": "REFerence:SOURce"
+    },
+    "reference_source_query": {
+      "command": "REFerence:SOURce?"
+    },
+    "reference_scale": {
+      "command": "REFerence:VSCale"
+    },
+    "reference_scale_query": {
+      "command": "REFerence:VSCale?"
+    },
+    "reference_offset": {
+      "command": "REFerence:VOFFset"
+    },
+    "reference_offset_query": {
+      "command": "REFerence:VOFFset?"
+    },
+    "reference_save": {
+      "command": "REFerence:SAVe"
+    },
+    "reference_reset": {
+      "command": "REFerence:RESet"
+    },
+    "reference_color": {
+      "command": "REFerence:COLor"
+    },
+    "reference_color_query": {
+      "command": "REFerence:COLor?"
+    },
+    "mask_enable": {
+      "command": "MASK:ENABle"
+    },
+    "mask_enable_query": {
+      "command": "MASK:ENABle?"
+    },
+    "mask_source": {
+      "command": "MASK:SOURce"
+    },
+    "mask_source_query": {
+      "command": "MASK:SOURce?"
+    },
+    "mask_operate": {
+      "command": "MASK:OPERate"
+    },
+    "mask_operate_query": {
+      "command": "MASK:OPERate?"
+    },
+    "mask_display": {
+      "command": "MASK:MDISplay"
+    },
+    "mask_display_query": {
+      "command": "MASK:MDISplay?"
+    },
+    "mask_create": {
+      "command": "MASK:CREate"
+    },
+    "mask_reset": {
+      "command": "MASK:RESet"
+    },
+    "mask_x": {
+      "command": "MASK:X"
+    },
+    "mask_x_query": {
+      "command": "MASK:X?"
+    },
+    "mask_y": {
+      "command": "MASK:Y"
+    },
+    "mask_y_query": {
+      "command": "MASK:Y?"
+    },
+    "mask_numbers": {
+      "command": "MASK:NUMBers?"
+    },
+    "mask_error_action": {
+      "command": "MASK:ERRaction"
+    },
+    "mask_error_action_query": {
+      "command": "MASK:ERRaction?"
+    },
+    "counter_enable": {
+      "command": "COUNter:ENABle"
+    },
+    "counter_enable_query": {
+      "command": "COUNter:ENABle?"
+    },
+    "counter_source": {
+      "command": "COUNter:SOURce"
+    },
+    "counter_source_query": {
+      "command": "COUNter:SOURce?"
+    },
+    "counter_current": {
+      "command": "COUNter:CURRent?"
+    },
+    "counter_mode": {
+      "command": "COUNter:MODE"
+    },
+    "counter_mode_query": {
+      "command": "COUNter:MODE?"
+    },
+    "counter_digits": {
+      "command": "COUNter:NDIGits"
+    },
+    "counter_digits_query": {
+      "command": "COUNter:NDIGits?"
+    },
+    "counter_totalize_enable": {
+      "command": "COUNter:TOTalize:ENABle"
+    },
+    "counter_totalize_enable_query": {
+      "command": "COUNter:TOTalize:ENABle?"
+    },
+    "counter_totalize_clear": {
+      "command": "COUNter:TOTalize:CLEar"
+    },
+    "dvm_enable": {
+      "command": "DVM:ENABle"
+    },
+    "dvm_enable_query": {
+      "command": "DVM:ENABle?"
+    },
+    "dvm_source": {
+      "command": "DVM:SOURce"
+    },
+    "dvm_source_query": {
+      "command": "DVM:SOURce?"
+    },
+    "dvm_current": {
+      "command": "DVM:CURRent?"
+    },
+    "dvm_mode": {
+      "command": "DVM:MODE"
+    },
+    "dvm_mode_query": {
+      "command": "DVM:MODE?"
+    },
+    "histogram_display": {
+      "command": "HISTogram:DISPlay"
+    },
+    "histogram_display_query": {
+      "command": "HISTogram:DISPlay?"
+    },
+    "histogram_source": {
+      "command": "HISTogram:SOURce"
+    },
+    "histogram_source_query": {
+      "command": "HISTogram:SOURce?"
+    },
+    "histogram_type": {
+      "command": "HISTogram:TYPE"
+    },
+    "histogram_type_query": {
+      "command": "HISTogram:TYPE?"
+    },
+    "histogram_size": {
+      "command": "HISTogram:SIZE"
+    },
+    "histogram_size_query": {
+      "command": "HISTogram:SIZE?"
+    },
+    "histogram_reset": {
+      "command": "HISTogram:RESet"
+    },
+    "histogram_static": {
+      "command": "HISTogram:STATic"
+    },
+    "histogram_static_query": {
+      "command": "HISTogram:STATic?"
+    },
+    "la_status": {
+      "command": "LA:STATe"
+    },
+    "la_status_query": {
+      "command": "LA:STATe?"
+    },
+    "la_active": {
+      "command": "LA:ACTive"
+    },
+    "la_active_query": {
+      "command": "LA:ACTive?"
+    },
+    "la_display": {
+      "command": "LA:DISPlay"
+    },
+    "la_display_query": {
+      "command": "LA:DISPlay?"
+    },
+    "la_size": {
+      "command": "LA:SIZE"
+    },
+    "la_size_query": {
+      "command": "LA:SIZE?"
+    },
+    "la_delete": {
+      "command": "LA:DELete"
+    },
+    "la_auto_sort": {
+      "command": "LA:AUTosort"
+    },
+    "la_digital_display": {
+      "command": "LA:DIGital:DISPlay"
+    },
+    "la_digital_display_query": {
+      "command": "LA:DIGital:DISPlay?"
+    },
+    "la_digital_position": {
+      "command": "LA:DIGital:POSition"
+    },
+    "la_digital_position_query": {
+      "command": "LA:DIGital:POSition?"
+    },
+    "la_pod1_threshold": {
+      "command": "LA:POD1:THReshold"
+    },
+    "la_pod1_threshold_query": {
+      "command": "LA:POD1:THReshold?"
+    },
+    "la_pod2_threshold": {
+      "command": "LA:POD2:THReshold"
+    },
+    "la_pod2_threshold_query": {
+      "command": "LA:POD2:THReshold?"
+    },
+    "la_probe_status": {
+      "command": "LA:probe:status?"
+    },
+    "jitter_source": {
+      "command": "JITTer:SOURce"
+    },
+    "jitter_source_query": {
+      "command": "JITTer:SOURce?"
+    },
+    "jitter_histogram_apply": {
+      "command": "JITTer:HISTogram:APPLy"
+    },
+    "jitter_histogram_apply_query": {
+      "command": "JITTer:HISTogram:APPLy?"
+    },
+    "jitter_spectrum_apply": {
+      "command": "JITTer:SPECtrum:APPLy"
+    },
+    "jitter_spectrum_apply_query": {
+      "command": "JITTer:SPECtrum:APPLy?"
+    },
+    "jitter_trend_apply": {
+      "command": "JITTer:TRENd:APPLy"
+    },
+    "jitter_trend_apply_query": {
+      "command": "JITTer:TRENd:APPLy?"
+    },
+    "power_type": {
+      "command": "POWer:TYPE"
+    },
+    "power_type_query": {
+      "command": "POWer:TYPE?"
+    },
+    "power_current_source": {
+      "command": "POWer:CURRentsource"
+    },
+    "power_current_source_query": {
+      "command": "POWer:CURRentsource?"
+    },
+    "power_voltage_source": {
+      "command": "POWer:VOLTagesource"
+    },
+    "power_voltage_source_query": {
+      "command": "POWer:VOLTagesource?"
+    },
+    "search_status": {
+      "command": "SEARch:STATe"
+    },
+    "search_status_query": {
+      "command": "SEARch:STATe?"
+    },
+    "search_mode": {
+      "command": "SEARch:MODE"
+    },
+    "search_mode_query": {
+      "command": "SEARch:MODE?"
+    },
+    "search_event": {
+      "command": "SEARch:EVENt"
+    },
+    "search_event_query": {
+      "command": "SEARch:EVENt?"
+    },
+    "search_count": {
+      "command": "SEARch:COUNt?"
+    },
+    "record_enable": {
+      "command": "RECord:ENABle"
+    },
+    "record_enable_query": {
+      "command": "RECord:ENABle?"
+    },
+    "record_start": {
+      "command": "RECord:STARt"
+    },
+    "record_start_query": {
+      "command": "RECord:STARt?"
+    },
+    "record_play": {
+      "command": "RECord:PLAY"
+    },
+    "record_play_query": {
+      "command": "RECord:PLAY?"
+    },
+    "record_current": {
+      "command": "RECord:CURRent"
+    },
+    "record_current_query": {
+      "command": "RECord:CURRent?"
+    },
+    "record_frames": {
+      "command": "RECord:FRAMes"
+    },
+    "record_frames_query": {
+      "command": "RECord:FRAMes?"
+    },
+    "quick_operation": {
+      "command": "QUICk:OPERation"
+    },
+    "quick_operation_query": {
+      "command": "QUICk:OPERation?"
+    },
+    "save_waveform": {
+      "command": "SAVE:WAVeform"
+    },
+    "save_setup": {
+      "command": "SAVE:SETup"
+    },
+    "save_image": {
+      "command": "SAVE:IMAGe"
+    },
+    "save_csv": {
+      "command": "SAVE:CSV"
+    },
+    "save_format": {
+      "command": "SAVE:FORMat"
+    },
+    "save_format_query": {
+      "command": "SAVE:FORMat?"
+    },
+    "save_image_type": {
+      "command": "SAVE:IMAGe:TYPE"
+    },
+    "save_image_type_query": {
+      "command": "SAVE:IMAGe:TYPE?"
+    },
+    "save_csv_factors": {
+      "command": "SAVE:CSV:FACTors"
+    },
+    "save_csv_factors_query": {
+      "command": "SAVE:CSV:FACTors?"
+    },
+    "save_csv_length": {
+      "command": "SAVE:CSV:LENGth"
+    },
+    "save_csv_length_query": {
+      "command": "SAVE:CSV:LENGth?"
+    },
+    "save_status": {
+      "command": "SAVE:STATus?"
+    },
+    "recall_setup": {
+      "command": "RECall:SETup"
+    },
+    "system_error": {
+      "command": "SYSTem:ERRor?"
+    },
+    "system_version": {
+      "command": "SYSTem:VERSion?"
+    },
+    "system_date": {
+      "command": "SYSTem:DATE"
+    },
+    "system_date_query": {
+      "command": "SYSTem:DATE?"
+    },
+    "system_time": {
+      "command": "SYSTem:TIME"
+    },
+    "system_time_query": {
+      "command": "SYSTem:TIME?"
+    },
+    "system_language": {
+      "command": "SYSTem:LANGuage"
+    },
+    "system_language_query": {
+      "command": "SYSTem:LANGuage?"
+    },
+    "system_beep": {
+      "command": "SYSTem:BEEPer"
+    },
+    "system_beep_query": {
+      "command": "SYSTem:BEEPer?"
+    },
+    "system_power_on": {
+      "command": "SYSTem:PON"
+    },
+    "system_power_on_query": {
+      "command": "SYSTem:PON?"
+    },
+    "system_power_status": {
+      "command": "SYSTem:PSTatus"
+    },
+    "system_power_status_query": {
+      "command": "SYSTem:PSTatus?"
+    },
+    "system_gpib": {
+      "command": "SYSTem:GPIB"
+    },
+    "system_gpib_query": {
+      "command": "SYSTem:GPIB?"
+    },
+    "system_key_press": {
+      "command": "SYSTem:KEY:PRESs"
+    },
+    "system_key_increase": {
+      "command": "SYSTem:KEY:INCRease"
+    },
+    "system_key_decrease": {
+      "command": "SYSTem:KEY:DECRease"
+    },
+    "system_option_install": {
+      "command": "SYSTem:OPTion:INSTall"
+    },
+    "system_option_status": {
+      "command": "SYSTem:OPTion:STATus?"
+    },
+    "system_option_list": {
+      "command": "SYSTem:OPTion:LIST?"
+    },
+    "system_modules": {
+      "command": "SYSTem:MODules?"
+    },
+    "system_analog_output": {
+      "command": "SYSTem:AOUTput"
+    },
+    "system_analog_output_query": {
+      "command": "SYSTem:AOUTput?"
+    },
+    "system_preset": {
+      "command": "SYSTem:PRES"
+    },
+    "system_preset_query": {
+      "command": "SYSTem:PRES?"
+    },
+    "system_lock": {
+      "command": "SYSTem:LOCKed"
+    },
+    "system_lock_query": {
+      "command": "SYSTem:LOCKed?"
+    },
+    "system_setup": {
+      "command": "SYSTem:SETup"
+    },
+    "system_setup_query": {
+      "command": "SYSTem:SETup?"
+    },
+    "calibration_start": {
+      "command": "CALibration:STARt"
+    },
+    "calibration_quit": {
+      "command": "CALibration:QUIT"
+    },
+    "calibration_status": {
+      "command": "CALibration:STATus?"
+    },
+    "calibration_date": {
+      "command": "CALibration:DATE?"
+    },
+    "calibration_time": {
+      "command": "CALibration:TIME?"
+    },
+    "calibration_save": {
+      "command": "CALibration:SAVE"
+    },
+    "calibration_load": {
+      "command": "CALibration:LOAD"
+    },
+    "lan_ip": {
+      "command": "LAN:IPADdress"
+    },
+    "lan_ip_query": {
+      "command": "LAN:IPADdress?"
+    },
+    "lan_mac": {
+      "command": "LAN:MAC?"
+    },
+    "lan_dhcp": {
+      "command": "LAN:DHCP"
+    },
+    "lan_dhcp_query": {
+      "command": "LAN:DHCP?"
+    },
+    "lan_autoip": {
+      "command": "LAN:AUToip"
+    },
+    "lan_autoip_query": {
+      "command": "LAN:AUToip?"
+    },
+    "lan_gateway": {
+      "command": "LAN:GATeway"
+    },
+    "lan_gateway_query": {
+      "command": "LAN:GATeway?"
+    },
+    "lan_dns": {
+      "command": "LAN:DNS"
+    },
+    "lan_dns_query": {
+      "command": "LAN:DNS?"
+    },
+    "lan_status": {
+      "command": "LAN:STATus?"
+    },
+    "lan_apply": {
+      "command": "LAN:APPLy"
+    },
+    "lan_initiate": {
+      "command": "LAN:INITiate"
+    },
+    "lan_hostname": {
+      "command": "LAN:HOST:NAME"
+    },
+    "lan_hostname_query": {
+      "command": "LAN:HOST:NAME?"
+    },
+    "lan_domain": {
+      "command": "LAN:DOMain"
+    },
+    "lan_domain_query": {
+      "command": "LAN:DOMain?"
+    },
+    "lan_mdns": {
+      "command": "LAN:MDNS"
+    },
+    "lan_mdns_query": {
+      "command": "LAN:MDNS?"
+    },
+    "lan_visa": {
+      "command": "LAN:VISA?"
+    },
+    "bus_mode": {
+      "command": "BUS{bus}:MODE"
+    },
+    "bus_mode_query": {
+      "command": "BUS{bus}:MODE?"
+    },
+    "bus_display": {
+      "command": "BUS{bus}:DISPlay"
+    },
+    "bus_display_query": {
+      "command": "BUS{bus}:DISPlay?"
+    },
+    "bus_format": {
+      "command": "BUS{bus}:FORMat"
+    },
+    "bus_format_query": {
+      "command": "BUS{bus}:FORMat?"
+    },
+    "bus_event": {
+      "command": "BUS{bus}:EVENt"
+    },
+    "bus_event_query": {
+      "command": "BUS{bus}:EVENt?"
+    },
+    "bus_data": {
+      "command": "BUS{bus}:DATA?"
+    },
+    "bus_threshold": {
+      "command": "BUS{bus}:THReshold"
+    },
+    "bus_threshold_query": {
+      "command": "BUS{bus}:THReshold?"
+    },
+    "bus_position": {
+      "command": "BUS{bus}:POSition"
+    },
+    "bus_position_query": {
+      "command": "BUS{bus}:POSition?"
+    },
+    "bus_label": {
+      "command": "BUS{bus}:LABel"
+    },
+    "bus_label_query": {
+      "command": "BUS{bus}:LABel?"
+    },
+    "bus_export": {
+      "command": "BUS{bus}:EEXPort"
+    }
+  }
+}
