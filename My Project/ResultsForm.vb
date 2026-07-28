@@ -1,6 +1,7 @@
 ﻿Imports System.Text.Json
 Imports System.Windows.Forms
 Imports System.Windows.Forms.DataVisualization.Charting
+Imports System.IO
 
 Public Class ResultsForm
     Private _resultsData As JsonElement
@@ -26,13 +27,14 @@ Public Class ResultsForm
         dataGridViewResults.ColumnHeadersDefaultCellStyle.ForeColor = Color.White
         dataGridViewResults.DefaultCellStyle.Font = New Font("Segoe UI", 9)
 
-        ' Table columns matching your measurement specifications
+        ' Table columns matching your measurement specifications.
+        ' NOTE: Vr (Vreverb) column removed -- per the cahier des charges,
+        ' this measurement is no longer requested (V50 now equals Vcc directly).
         dataGridViewResults.Columns.Add("colDamping", "Damping (Ω)")
         dataGridViewResults.Columns.Add("colAmplitude", "Amplitude (V)")
-        dataGridViewResults.Columns.Add("colV50Meas", "V50 Mesuré (V)")
+        dataGridViewResults.Columns.Add("colV50Meas", "V50 / Vcc Mesuré (V)")
         dataGridViewResults.Columns.Add("colTdMeas", "td Mesuré (ns)")
         dataGridViewResults.Columns.Add("colTrMeas", "tr Mesuré (ns)")
-        dataGridViewResults.Columns.Add("colVrMeas", "Vr Mesuré (%)")
 
         dataGridViewResults.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         dataGridViewResults.AllowUserToAddRows = False
@@ -61,20 +63,29 @@ Public Class ResultsForm
 
             If Not success Then
                 ' Handle failed measurement
-                Dim errorMsg = res.GetProperty("error").GetString()
-                dataGridViewResults.Rows.Add("", "", "", "", "", $"❌ {errorMsg}")
+                Dim errorMsg As String = "Erreur inconnue"
+                Dim errEl As JsonElement
+                If res.TryGetProperty("error", errEl) AndAlso errEl.ValueKind = JsonValueKind.String Then
+                    errorMsg = errEl.GetString()
+                End If
+                dataGridViewResults.Rows.Add("", "", "", "", $"❌ {errorMsg}")
                 Continue For
             End If
 
-            ' Get properties - Python returns these as numbers
-            Dim damping As Double = res.GetProperty("damping").GetDouble()
-            Dim amplitude As Double = res.GetProperty("amplitude").GetDouble()
+            ' FIXED: visa_commander.py sends "amplitude_set" / "damping_set"
+            ' (these are the values the technician set on the flaw detector's
+            ' physical dials -- informational only). Read via the safe
+            ' GetDoubleFromJson helper rather than a direct .GetProperty()
+            ' call, so a missing/renamed field never crashes this form again.
+            Dim damping As Double = GetDoubleFromJson(res, "damping_set")
+            Dim amplitude As Double = GetDoubleFromJson(res, "amplitude_set")
 
             ' Get measured values - using helper function
             Dim v50Meas As Double = GetDoubleFromJson(res, "v50_meas")
             Dim tdMeas As Double = GetDoubleFromJson(res, "td")
             Dim trMeas As Double = GetDoubleFromJson(res, "tr")
-            Dim vrMeas As Double = GetDoubleFromJson(res, "vr")
+            ' NOTE: "vr" is no longer read at all -- this measurement was
+            ' dropped per the cahier des charges.
 
             ' 1. Add data row to the grid
             dataGridViewResults.Rows.Add(
@@ -82,8 +93,7 @@ Public Class ResultsForm
                 amplitude.ToString("F1"),
                 v50Meas.ToString("F2"),
                 tdMeas.ToString("F1"),
-                trMeas.ToString("F1"),
-                vrMeas.ToString("F1")
+                trMeas.ToString("F1")
             )
 
             ' Apply color based on pass/fail criteria (example thresholds)
@@ -108,7 +118,7 @@ Public Class ResultsForm
             ' 2. Dynamically build the graph box with the settings header block on top
             Dim groupBox As New GroupBox()
             groupBox.Width = 420
-            groupBox.Height = 280
+            groupBox.Height = 310
             groupBox.Margin = New Padding(10)
             groupBox.Font = New Font("Segoe UI", 9, FontStyle.Bold)
             groupBox.ForeColor = Color.FromArgb(64, 64, 64)
@@ -124,6 +134,41 @@ Public Class ResultsForm
             lblParams.Font = New Font("Segoe UI", 9, FontStyle.Regular)
             lblParams.ForeColor = Color.FromArgb(64, 64, 64)
             lblParams.BackColor = Color.FromArgb(240, 240, 240)
+
+            ' Screenshot button: opens the oscilloscope's saved screen
+            ' capture (per impulse) in the default image viewer, if one
+            ' was successfully captured for this row.
+            Dim screenshotPath As String = Nothing
+            Dim screenshotEl As JsonElement
+            If res.TryGetProperty("screenshot_path", screenshotEl) AndAlso screenshotEl.ValueKind = JsonValueKind.String Then
+                screenshotPath = screenshotEl.GetString()
+            End If
+
+            Dim btnScreenshot As New Button()
+            btnScreenshot.Dock = DockStyle.Top
+            btnScreenshot.Height = 28
+            btnScreenshot.Font = New Font("Segoe UI", 8)
+            btnScreenshot.FlatStyle = FlatStyle.Flat
+
+            Dim hasScreenshot As Boolean = Not String.IsNullOrEmpty(screenshotPath) AndAlso File.Exists(screenshotPath)
+            If hasScreenshot Then
+                btnScreenshot.Text = "📷 Voir la capture d'écran"
+                btnScreenshot.Enabled = True
+                Dim capturedPath As String = screenshotPath ' local copy for the lambda
+                AddHandler btnScreenshot.Click, Sub(s, args)
+                                                    Try
+                                                        Dim psi As New ProcessStartInfo(capturedPath)
+                                                        psi.UseShellExecute = True
+                                                        Process.Start(psi)
+                                                    Catch ex As Exception
+                                                        MessageBox.Show($"Impossible d'ouvrir la capture d'écran : {ex.Message}",
+                                                                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                                    End Try
+                                                End Sub
+            Else
+                btnScreenshot.Text = "📷 Capture indisponible"
+                btnScreenshot.Enabled = False
+            End If
 
             ' Create chart with dark background for better visibility
             Dim chart As New Chart()
@@ -168,9 +213,13 @@ Public Class ResultsForm
                 xIndex += 1
             Next
 
-            ' Add horizontal line for V50 target (red dashed line) at Vcc/2
+            ' Add horizontal line for V50/Vcc target (red dashed line).
+            ' FIXED: V50 now equals Vcc directly (the pulse's own peak
+            ' voltage, per the updated cahier des charges), not "50% of
+            ' the peak" as it meant in the old version of this form.
+            ' The reference line is drawn at v50Meas itself, not v50Meas*0.5.
             If v50Meas > 0 Then
-                Dim v50Line As New Series("V50 Target")
+                Dim v50Line As New Series("V50 / Vcc")
                 v50Line.ChartType = SeriesChartType.Line
                 v50Line.Color = Color.Red
                 v50Line.BorderWidth = 1
@@ -183,12 +232,12 @@ Public Class ResultsForm
                     xMax = series.Points(series.Points.Count - 1).XValue
                 End If
 
-                v50Line.Points.AddXY(0, v50Meas * 0.5)
-                v50Line.Points.AddXY(xMax, v50Meas * 0.5)
+                v50Line.Points.AddXY(0, v50Meas)
+                v50Line.Points.AddXY(xMax, v50Meas)
                 chart.Series.Add(v50Line)
             End If
 
-            ' Add series for td (vertical line at delay time)
+            ' Add series for td (vertical line at pulse duration)
             If tdMeas > 0 Then
                 Dim tdLine As New Series("td")
                 tdLine.ChartType = SeriesChartType.Line
@@ -208,6 +257,7 @@ Public Class ResultsForm
 
             groupBox.Controls.Add(chart)
             groupBox.Controls.Add(lblParams)
+            groupBox.Controls.Add(btnScreenshot)
             flowPanelGraphs.Controls.Add(groupBox)
         Next
 

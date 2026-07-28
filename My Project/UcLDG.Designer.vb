@@ -22,19 +22,23 @@ Partial Class UcLDG
     'Ne la modifiez pas à l'aide de l'éditeur de code.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        components = New ComponentModel.Container()
         Label1 = New Label()
         Label2 = New Label()
         GroupBox1 = New GroupBox()
         TableLayoutPanel2 = New TableLayoutPanel()
-        TextBox2 = New TextBox()
+        txtTension = New TextBox()
         Label4 = New Label()
         TableLayoutPanel1 = New TableLayoutPanel()
-        TextBox1 = New TextBox()
+        txtFreq = New TextBox()
         Label3 = New Label()
         Label5 = New Label()
-        Button1 = New Button()
-        Button2 = New Button()
-        GroupBox2 = New GroupBox()
+        BtnSuivant = New Button()
+        BtnPrecedent = New Button()
+        btnThreeDots = New Button()
+        cmsAppareils = New ContextMenuStrip(components)
+        btnArreter = New Button()
+        btnAcquerir = New Button()
         GroupBox1.SuspendLayout()
         TableLayoutPanel2.SuspendLayout()
         TableLayoutPanel1.SuspendLayout()
@@ -43,7 +47,7 @@ Partial Class UcLDG
         ' Label1
         ' 
         Label1.AutoSize = True
-        Label1.Location = New Point(60, 227)
+        Label1.Location = New Point(37, 77)
         Label1.Name = "Label1"
         Label1.Size = New Size(287, 15)
         Label1.TabIndex = 0
@@ -64,7 +68,7 @@ Partial Class UcLDG
         ' 
         GroupBox1.Controls.Add(TableLayoutPanel2)
         GroupBox1.Controls.Add(TableLayoutPanel1)
-        GroupBox1.Location = New Point(23, 262)
+        GroupBox1.Location = New Point(0, 112)
         GroupBox1.Name = "GroupBox1"
         GroupBox1.Size = New Size(996, 100)
         GroupBox1.TabIndex = 6
@@ -75,7 +79,7 @@ Partial Class UcLDG
         TableLayoutPanel2.ColumnCount = 2
         TableLayoutPanel2.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50F))
         TableLayoutPanel2.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50F))
-        TableLayoutPanel2.Controls.Add(TextBox2, 1, 0)
+        TableLayoutPanel2.Controls.Add(txtTension, 1, 0)
         TableLayoutPanel2.Controls.Add(Label4, 0, 0)
         TableLayoutPanel2.Location = New Point(507, 36)
         TableLayoutPanel2.Name = "TableLayoutPanel2"
@@ -84,13 +88,13 @@ Partial Class UcLDG
         TableLayoutPanel2.Size = New Size(454, 41)
         TableLayoutPanel2.TabIndex = 8
         ' 
-        ' TextBox2
+        ' txtTension
         ' 
-        TextBox2.Anchor = AnchorStyles.None
-        TextBox2.Location = New Point(270, 9)
-        TextBox2.Name = "TextBox2"
-        TextBox2.Size = New Size(140, 23)
-        TextBox2.TabIndex = 8
+        txtTension.Anchor = AnchorStyles.None
+        txtTension.Location = New Point(270, 9)
+        txtTension.Name = "txtTension"
+        txtTension.Size = New Size(140, 23)
+        txtTension.TabIndex = 8
         ' 
         ' Label4
         ' 
@@ -107,7 +111,7 @@ Partial Class UcLDG
         TableLayoutPanel1.ColumnCount = 2
         TableLayoutPanel1.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50F))
         TableLayoutPanel1.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 50F))
-        TableLayoutPanel1.Controls.Add(TextBox1, 1, 0)
+        TableLayoutPanel1.Controls.Add(txtFreq, 1, 0)
         TableLayoutPanel1.Controls.Add(Label3, 0, 0)
         TableLayoutPanel1.Location = New Point(43, 36)
         TableLayoutPanel1.Name = "TableLayoutPanel1"
@@ -116,13 +120,13 @@ Partial Class UcLDG
         TableLayoutPanel1.Size = New Size(454, 41)
         TableLayoutPanel1.TabIndex = 7
         ' 
-        ' TextBox1
+        ' txtFreq
         ' 
-        TextBox1.Anchor = AnchorStyles.None
-        TextBox1.Location = New Point(270, 9)
-        TextBox1.Name = "TextBox1"
-        TextBox1.Size = New Size(140, 23)
-        TextBox1.TabIndex = 7
+        txtFreq.Anchor = AnchorStyles.None
+        txtFreq.Location = New Point(270, 9)
+        txtFreq.Name = "txtFreq"
+        txtFreq.Size = New Size(140, 23)
+        txtFreq.TabIndex = 7
         ' 
         ' Label3
         ' 
@@ -137,48 +141,77 @@ Partial Class UcLDG
         ' Label5
         ' 
         Label5.AutoSize = True
-        Label5.Location = New Point(60, 398)
+        Label5.Location = New Point(37, 248)
         Label5.Name = "Label5"
         Label5.Size = New Size(246, 15)
         Label5.TabIndex = 7
         Label5.Text = "Régler le signal à 80% de la hauteur de l'écran"
         ' 
-        ' Button1
+        ' BtnSuivant
         ' 
-        Button1.Anchor = AnchorStyles.Bottom Or AnchorStyles.Right
-        Button1.Location = New Point(904, 491)
-        Button1.Name = "Button1"
-        Button1.Size = New Size(75, 23)
-        Button1.TabIndex = 8
-        Button1.Text = "Suivant"
-        Button1.UseVisualStyleBackColor = True
+        BtnSuivant.Anchor = AnchorStyles.Bottom Or AnchorStyles.Right
+        BtnSuivant.Location = New Point(904, 491)
+        BtnSuivant.Name = "BtnSuivant"
+        BtnSuivant.Size = New Size(75, 23)
+        BtnSuivant.TabIndex = 8
+        BtnSuivant.Text = "Suivant"
+        BtnSuivant.UseVisualStyleBackColor = True
         ' 
-        ' Button2
+        ' BtnPrecedent
         ' 
-        Button2.Anchor = AnchorStyles.Bottom Or AnchorStyles.Left
-        Button2.Location = New Point(24, 495)
-        Button2.Name = "Button2"
-        Button2.Size = New Size(75, 23)
-        Button2.TabIndex = 9
-        Button2.Text = "Précédent"
-        Button2.UseVisualStyleBackColor = True
+        BtnPrecedent.Anchor = AnchorStyles.Bottom Or AnchorStyles.Left
+        BtnPrecedent.Location = New Point(24, 495)
+        BtnPrecedent.Name = "BtnPrecedent"
+        BtnPrecedent.Size = New Size(75, 23)
+        BtnPrecedent.TabIndex = 9
+        BtnPrecedent.Text = "Précédent"
+        BtnPrecedent.UseVisualStyleBackColor = True
         ' 
-        ' GroupBox2
+        ' btnThreeDots
         ' 
-        GroupBox2.Location = New Point(60, 71)
-        GroupBox2.Name = "GroupBox2"
-        GroupBox2.Size = New Size(377, 135)
-        GroupBox2.TabIndex = 10
-        GroupBox2.TabStop = False
-        GroupBox2.Text = "Réglages"
+        btnThreeDots.Anchor = AnchorStyles.Top Or AnchorStyles.Right
+        btnThreeDots.ContextMenuStrip = cmsAppareils
+        btnThreeDots.Location = New Point(954, 22)
+        btnThreeDots.Name = "btnThreeDots"
+        btnThreeDots.Size = New Size(25, 23)
+        btnThreeDots.TabIndex = 13
+        btnThreeDots.Text = "⋮"
+        btnThreeDots.UseVisualStyleBackColor = True
+        ' 
+        ' cmsAppareils
+        ' 
+        cmsAppareils.Name = "cmsAppareils"
+        cmsAppareils.Size = New Size(61, 4)
+        ' 
+        ' btnArreter
+        ' 
+        btnArreter.Location = New Point(242, 318)
+        btnArreter.Margin = New Padding(3, 2, 3, 2)
+        btnArreter.Name = "btnArreter"
+        btnArreter.Size = New Size(82, 22)
+        btnArreter.TabIndex = 15
+        btnArreter.Text = "Arrêter"
+        btnArreter.UseVisualStyleBackColor = True
+        ' 
+        ' btnAcquerir
+        ' 
+        btnAcquerir.Location = New Point(133, 318)
+        btnAcquerir.Margin = New Padding(3, 2, 3, 2)
+        btnAcquerir.Name = "btnAcquerir"
+        btnAcquerir.Size = New Size(82, 22)
+        btnAcquerir.TabIndex = 14
+        btnAcquerir.Text = "Acquerir"
+        btnAcquerir.UseVisualStyleBackColor = True
         ' 
         ' UcLDG
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        Controls.Add(GroupBox2)
-        Controls.Add(Button2)
-        Controls.Add(Button1)
+        Controls.Add(btnArreter)
+        Controls.Add(btnAcquerir)
+        Controls.Add(btnThreeDots)
+        Controls.Add(BtnPrecedent)
+        Controls.Add(BtnSuivant)
         Controls.Add(Label5)
         Controls.Add(GroupBox1)
         Controls.Add(Label2)
@@ -201,11 +234,14 @@ Partial Class UcLDG
     Friend WithEvents TableLayoutPanel1 As TableLayoutPanel
     Friend WithEvents Label3 As Label
     Friend WithEvents Label4 As Label
-    Friend WithEvents TextBox2 As TextBox
-    Friend WithEvents TextBox1 As TextBox
+    Friend WithEvents txtTension As TextBox
+    Friend WithEvents txtFreq As TextBox
     Friend WithEvents Label5 As Label
-    Friend WithEvents Button1 As Button
-    Friend WithEvents Button2 As Button
-    Friend WithEvents GroupBox2 As GroupBox
+    Friend WithEvents BtnSuivant As Button
+    Friend WithEvents BtnPrecedent As Button
+    Friend WithEvents btnThreeDots As Button
+    Friend WithEvents cmsAppareils As ContextMenuStrip
+    Friend WithEvents btnArreter As Button
+    Friend WithEvents btnAcquerir As Button
 
 End Class

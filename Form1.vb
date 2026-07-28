@@ -5,6 +5,8 @@
     Private vueConstat As UcConstat
     Private vueImpulsion As UcImpulsion
     Private vueLDG As UcLDG
+    Private vueLVA As UcLVA
+    Private vueRFA As UcRFA
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Initialiser la base de données locale
@@ -56,7 +58,8 @@
     End Sub
 
     Private Sub RetournerA_UcConstat(sender As Object, e As EventArgs)
-        AfficherUcConstat()
+        pnlConteneur.Controls.Clear()
+        pnlConteneur.Controls.Add(vueConstat)
     End Sub
 
     ' ------------------------------------------------------------------
@@ -68,11 +71,57 @@
         If vueLDG Is Nothing Then
             vueLDG = New UcLDG()
             vueLDG.Dock = DockStyle.Fill
-            ' TODO: Attacher l'événement Précédent de UcLDG s'il existe :
-            ' AddHandler vueLDG.PrecedentClicked, AddressOf ChargerUcImpulsion
+            AddHandler vueLDG.PrecedentClicked, AddressOf RetournerA_UcImpulsion
+            AddHandler vueLDG.SuivantClicked, AddressOf ChargerUcLVA
         End If
 
         pnlConteneur.Controls.Add(vueLDG)
+    End Sub
+
+    Private Sub RetournerA_UcImpulsion(sender As Object, e As EventArgs)
+        pnlConteneur.Controls.Clear()
+        pnlConteneur.Controls.Add(vueImpulsion)
+    End Sub
+
+    ' ------------------------------------------------------------------
+    ' ÉTAPE 4 : UcLDG <-> UcLVA
+    ' ------------------------------------------------------------------
+    Private Sub ChargerUcLVA(sender As Object, e As EventArgs)
+        pnlConteneur.Controls.Clear()
+
+        If vueLVA Is Nothing Then
+            vueLVA = New UcLVA()
+            vueLVA.Dock = DockStyle.Fill
+            AddHandler vueLVA.PrecedentClicked, AddressOf RetournerA_UcLDG
+            AddHandler vueLVA.SuivantClicked, AddressOf ChargerUcRFA
+        End If
+
+        pnlConteneur.Controls.Add(vueLVA)
+    End Sub
+
+    Private Sub RetournerA_UcLDG(sender As Object, e As EventArgs)
+        pnlConteneur.Controls.Clear()
+        pnlConteneur.Controls.Add(vueLDG)
+    End Sub
+
+    ' ------------------------------------------------------------------
+    ' ÉTAPE 5 : UcLVA <-> UcRFA
+    ' ------------------------------------------------------------------
+    Private Sub ChargerUcRFA(sender As Object, e As EventArgs)
+        pnlConteneur.Controls.Clear()
+
+        If vueRFA Is Nothing Then
+            vueRFA = New UcRFA()
+            vueRFA.Dock = DockStyle.Fill
+            'AddHandler vueRFA.PrecedentClicked, AddressOf RetournerA_UcLVA
+        End If
+
+        pnlConteneur.Controls.Add(vueRFA)
+    End Sub
+
+    Private Sub RetournerA_UcLVA(sender As Object, e As EventArgs)
+        pnlConteneur.Controls.Clear()
+        pnlConteneur.Controls.Add(vueLVA)
     End Sub
 
 End Class
