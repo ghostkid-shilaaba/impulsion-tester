@@ -123,5 +123,8 @@
         pnlConteneur.Controls.Clear()
         pnlConteneur.Controls.Add(vueLVA)
     End Sub
-
+    Private Sub Form1_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+        ' Optional: Clear cache when app closes
+        VisaCacheHelper.ClearCache()
+    End Sub
 End Class

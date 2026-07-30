@@ -96,7 +96,7 @@ Public Class UcImpulsion
     End Sub
 
     ' ------------------------------------------------------------------
-    ' DÉTECTION HARDWARE (Via Processus Python Isolé)
+    ' DÉTECTION HARDWARE (Avec Cache)
     ' ------------------------------------------------------------------
     Public Sub VerifyConnections()
         ' Réinitialiser les adresses tant qu'on n'a pas confirmé une nouvelle détection
@@ -107,6 +107,25 @@ Public Class UcImpulsion
         scopeConfig = Nothing
         generatorConfig = Nothing
 
+        ' 1. ESSAYER LE CACHE D'ABORD
+        If VisaCacheHelper.HasValidCache() Then
+            Dim cacheData = VisaCacheHelper.LoadFromCache()
+            If cacheData.ValueKind <> JsonValueKind.Undefined Then
+                Dim parsed As Boolean = ParseDetectionResults(cacheData)
+                If parsed AndAlso isScopeConnected AndAlso isGenConnected Then
+                    Debug.WriteLine("Utilisation du cache pour la détection hardware")
+                    UpdateUIAfterDetection()
+                    Return
+                End If
+            End If
+        End If
+
+        ' 2. PAS DE CACHE VALIDE → EXÉCUTER PYTHON
+        Debug.WriteLine("Pas de cache valide, exécution de visa_checker.py...")
+        RunPythonDetection()
+    End Sub
+
+    Private Sub RunPythonDetection()
         Try
             ' Find the Python script
             Dim scriptPath As String = FindPythonScript("visa_checker.py")
@@ -168,54 +187,10 @@ Public Class UcImpulsion
                 End If
 
                 If Not String.IsNullOrEmpty(output) Then
+                    ' Le script Python sauvegarde automatiquement dans le cache
                     Using doc As JsonDocument = JsonDocument.Parse(output)
                         Dim root = doc.RootElement
-
-                        Dim scopeVal As JsonElement
-                        If root.TryGetProperty("oscilloscope", scopeVal) AndAlso scopeVal.ValueKind = JsonValueKind.Array Then
-                            If scopeVal.GetArrayLength() > 0 Then
-                                Dim firstScope = scopeVal(0)
-                                Dim idnEl As JsonElement
-                                Dim resEl As JsonElement
-                                Dim configEl As JsonElement
-
-                                If firstScope.TryGetProperty("idn", idnEl) AndAlso idnEl.ValueKind = JsonValueKind.String Then
-                                    scopeIdn = idnEl.GetString()
-                                End If
-
-                                If firstScope.TryGetProperty("resource", resEl) AndAlso resEl.ValueKind = JsonValueKind.String Then
-                                    scopeResource = resEl.GetString()
-                                End If
-
-                                If firstScope.TryGetProperty("config", configEl) AndAlso configEl.ValueKind = JsonValueKind.Object Then
-                                    ' FIXED: Clone() keeps the data alive after the JsonDocument is disposed
-                                    scopeConfig = configEl.Clone()
-                                End If
-                            End If
-                        End If
-
-                        Dim genVal As JsonElement
-                        If root.TryGetProperty("generator", genVal) AndAlso genVal.ValueKind = JsonValueKind.Array Then
-                            If genVal.GetArrayLength() > 0 Then
-                                Dim firstGen = genVal(0)
-                                Dim idnEl As JsonElement
-                                Dim resEl As JsonElement
-                                Dim configEl As JsonElement
-
-                                If firstGen.TryGetProperty("idn", idnEl) AndAlso idnEl.ValueKind = JsonValueKind.String Then
-                                    generatorIdn = idnEl.GetString()
-                                End If
-
-                                If firstGen.TryGetProperty("resource", resEl) AndAlso resEl.ValueKind = JsonValueKind.String Then
-                                    generatorResource = resEl.GetString()
-                                End If
-
-                                If firstGen.TryGetProperty("config", configEl) AndAlso configEl.ValueKind = JsonValueKind.Object Then
-                                    ' FIXED: Clone() keeps the data alive after the JsonDocument is disposed
-                                    generatorConfig = configEl.Clone()
-                                End If
-                            End If
-                        End If
+                        ParseDetectionResults(root)
                     End Using
                 Else
                     SafeInvoke(Sub()
@@ -237,9 +212,66 @@ Public Class UcImpulsion
                        End Sub)
         End Try
 
-        isScopeConnected = Not String.IsNullOrEmpty(scopeIdn) AndAlso Not String.IsNullOrEmpty(scopeResource)
-        isGenConnected = Not String.IsNullOrEmpty(generatorIdn) AndAlso Not String.IsNullOrEmpty(generatorResource)
+        UpdateUIAfterDetection()
+    End Sub
 
+    Private Function ParseDetectionResults(root As JsonElement) As Boolean
+        Try
+            Dim scopeVal As JsonElement
+            If root.TryGetProperty("oscilloscope", scopeVal) AndAlso scopeVal.ValueKind = JsonValueKind.Array Then
+                If scopeVal.GetArrayLength() > 0 Then
+                    Dim firstScope = scopeVal(0)
+                    Dim idnEl As JsonElement
+                    Dim resEl As JsonElement
+                    Dim configEl As JsonElement
+
+                    If firstScope.TryGetProperty("idn", idnEl) AndAlso idnEl.ValueKind = JsonValueKind.String Then
+                        scopeIdn = idnEl.GetString()
+                    End If
+
+                    If firstScope.TryGetProperty("resource", resEl) AndAlso resEl.ValueKind = JsonValueKind.String Then
+                        scopeResource = resEl.GetString()
+                    End If
+
+                    If firstScope.TryGetProperty("config", configEl) AndAlso configEl.ValueKind = JsonValueKind.Object Then
+                        scopeConfig = configEl.Clone()
+                    End If
+                End If
+            End If
+
+            Dim genVal As JsonElement
+            If root.TryGetProperty("generator", genVal) AndAlso genVal.ValueKind = JsonValueKind.Array Then
+                If genVal.GetArrayLength() > 0 Then
+                    Dim firstGen = genVal(0)
+                    Dim idnEl As JsonElement
+                    Dim resEl As JsonElement
+                    Dim configEl As JsonElement
+
+                    If firstGen.TryGetProperty("idn", idnEl) AndAlso idnEl.ValueKind = JsonValueKind.String Then
+                        generatorIdn = idnEl.GetString()
+                    End If
+
+                    If firstGen.TryGetProperty("resource", resEl) AndAlso resEl.ValueKind = JsonValueKind.String Then
+                        generatorResource = resEl.GetString()
+                    End If
+
+                    If firstGen.TryGetProperty("config", configEl) AndAlso configEl.ValueKind = JsonValueKind.Object Then
+                        generatorConfig = configEl.Clone()
+                    End If
+                End If
+            End If
+
+            isScopeConnected = Not String.IsNullOrEmpty(scopeIdn) AndAlso Not String.IsNullOrEmpty(scopeResource)
+            isGenConnected = Not String.IsNullOrEmpty(generatorIdn) AndAlso Not String.IsNullOrEmpty(generatorResource)
+
+            Return True
+        Catch ex As Exception
+            Debug.WriteLine($"ParseDetectionResults error: {ex.Message}")
+            Return False
+        End Try
+    End Function
+
+    Private Sub UpdateUIAfterDetection()
         SafeInvoke(Sub()
                        If Not isScopeConnected OrElse Not isGenConnected Then
                            btnAcquerir.Enabled = False
@@ -316,7 +348,11 @@ Public Class UcImpulsion
         cmsAppareils.Items.Add(New ToolStripSeparator())
 
         Dim btnRefresh As New ToolStripMenuItem("🔄 Re-scanner les appareils")
-        AddHandler btnRefresh.Click, Sub(s, args) VerifyConnections()
+        AddHandler btnRefresh.Click, Sub(s, args)
+                                         ' Clear cache and force fresh detection
+                                         VisaCacheHelper.ClearCache()
+                                         VerifyConnections()
+                                     End Sub
         cmsAppareils.Items.Add(btnRefresh)
     End Sub
 

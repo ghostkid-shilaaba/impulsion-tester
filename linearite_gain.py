@@ -44,6 +44,7 @@ def get_command(cfg, name, **values):
         return None
     cmds = cfg.get("commands", {})
     if name not in cmds:
+        debug(f"WARNING: Command '{name}' not found in config")
         return None
     entry = cmds[name]
     cmd = entry.get("command", "") if isinstance(entry, dict) else entry
@@ -69,6 +70,24 @@ def safe_query_float(inst, cmd):
         return float(inst.query(cmd).strip())
     except Exception:
         return None
+
+
+def safe_write(inst, cmd):
+    """Write a command and wait for *OPC? to confirm completion."""
+    if not cmd:
+        return False
+    try:
+        inst.write(cmd)
+        # Wait for operation to complete (more reliable than sleep)
+        try:
+            inst.query("*OPC?")
+        except:
+            # If *OPC? not supported, fall back to sleep
+            time.sleep(0.05)
+        return True
+    except Exception as e:
+        debug(f"Write failed for '{cmd}': {e}")
+        return False
 
 
 def compute_step_values(reglage, v_meas, reglage_reference, v_reference,
@@ -121,9 +140,12 @@ class GainMeasurement:
         self.reference_voltage = None
         self.previous_gain = None
         self.previous_voltage = None
+        
+        # Burst trigger command (cached after first lookup)
+        self.trigger_cmd = None
 
     def initialize(self, config):
-        """Open VISA connections and configure the generator once."""
+        """Open VISA connections and configure the generator ONCE."""
         self.rm = pyvisa.ResourceManager()
         
         self.scope = self.rm.open_resource(config["scope_resource"])
@@ -160,13 +182,55 @@ class GainMeasurement:
         freq_hz = float(config["frequency_mhz"]) * 1e6
         vcc = float(config["tension_vcc"])
 
+        # Get the trigger command for later use
+        self.trigger_cmd = get_command(self.gen_cfg, "trigger")
+        if not self.trigger_cmd:
+            # Try alternative trigger commands
+            self.trigger_cmd = get_command(self.gen_cfg, "burst_trigger_immediate")
+        if not self.trigger_cmd:
+            debug("WARNING: No trigger command found in config. Manual triggering required.")
+
+        # Apply sine wave
         apply_cmd = get_command(self.gen_cfg, "apply_sine", value=f"{freq_hz},{vcc},0,0")
         if apply_cmd:
-            self.gen.write(apply_cmd)
+            safe_write(self.gen, apply_cmd)
 
+        # --- BURST CONFIGURATION (SPECIFIC TO LDG) ---
+        # 1. Turn burst ON
+        burst_cmd = get_command(self.gen_cfg, "burst_state", state="ON")
+        if burst_cmd:
+            safe_write(self.gen, burst_cmd)
+        else:
+            debug("WARNING: 'burst_state' command not found")
+        
+        # 2. Set burst mode to TRIGgered
+        burst_mode_cmd = get_command(self.gen_cfg, "burst_mode", mode="TRIGgered")
+        if burst_mode_cmd:
+            safe_write(self.gen, burst_mode_cmd)
+        else:
+            debug("WARNING: 'burst_mode' command not found")
+        
+        # 3. Set number of cycles to 11
+        burst_ncycles_cmd = get_command(self.gen_cfg, "burst_ncycles", ncycles=11)
+        if burst_ncycles_cmd:
+            safe_write(self.gen, burst_ncycles_cmd)
+        else:
+            debug("WARNING: 'burst_ncycles' command not found")
+        
+        # 4. Set trigger source to EXTernal (updated from MANUAL)
+        burst_trigger_cmd = get_command(self.gen_cfg, "burst_trigger_source", source="EXTernal")
+        if burst_trigger_cmd:
+            safe_write(self.gen, burst_trigger_cmd)
+        else:
+            debug("WARNING: 'burst_trigger_source' command not found")
+
+        # 5. Turn output ON
         out_cmd = get_command(self.gen_cfg, "output_state", state="ON")
         if out_cmd:
-            self.gen.write(out_cmd)
+            safe_write(self.gen, out_cmd)
+
+        debug(f"Generator configured: {freq_hz/1e6:.2f} MHz, {vcc:.3f}V, BURST 11 cycles, EXTernal trigger")
+        debug(f"Trigger command: {self.trigger_cmd if self.trigger_cmd else 'EXTernal (from source)'}")
 
         time.sleep(0.5)
         self.is_initialized = True
@@ -177,6 +241,20 @@ class GainMeasurement:
         self.previous_gain = None
         self.previous_voltage = None
 
+    def trigger_burst(self):
+        """Send trigger command to fire the burst."""
+        if not self.trigger_cmd:
+            debug("No trigger command available - waiting for EXTernal trigger")
+            return False
+        
+        try:
+            safe_write(self.gen, self.trigger_cmd)
+            debug(f"Burst triggered: {self.trigger_cmd}")
+            return True
+        except Exception as e:
+            debug(f"Failed to trigger burst: {e}")
+            return False
+
     def measure(self, reglage, request_id=None):
         """
         Perform a single measurement at the given gain setting.
@@ -185,10 +263,31 @@ class GainMeasurement:
         if not self.is_initialized:
             raise Exception("Measurement not initialized. Call initialize() first.")
 
-        # Measure Vpp
+        # --- 1. TRIGGER THE BURST ---
+        # If trigger command is available, fire it before measuring
+        if self.trigger_cmd:
+            self.trigger_burst()
+        else:
+            debug(f"Waiting for EXTernal trigger for gain {reglage} dB...")
+        
+        # --- 2. WAIT FOR BURST TO COMPLETE ---
+        # Wait for the burst to finish before measuring
+        # 11 cycles at frequency f: time = 11 / f
+        # Add some margin (20%)
+        freq_hz = float(self.scope_cfg.get("frequency", 5e6))  # Get from config if available
+        if freq_hz:
+            burst_duration = 11 / freq_hz  # seconds
+            wait_time = min(max(burst_duration * 1.2, 0.001), 0.1)  # Between 1ms and 100ms
+            debug(f"Waiting {wait_time*1000:.1f}ms for burst to complete")
+            time.sleep(wait_time)
+        else:
+            # Fallback: fixed wait
+            time.sleep(0.01)
+
+        # --- 3. MEASURE VPP ---
         src_cmd = get_command(self.scope_cfg, "measurement_source", source="CHANnel1")
         if src_cmd:
-            self.scope.write(src_cmd)
+            safe_write(self.scope, src_cmd)
 
         vpp_cmd = get_command(self.scope_cfg, "measurement_vpp")
         v_meas = safe_query_float(self.scope, vpp_cmd)
@@ -232,7 +331,7 @@ class GainMeasurement:
             if self.gen and self.gen_cfg:
                 out_cmd = get_command(self.gen_cfg, "output_state", state="OFF")
                 if out_cmd:
-                    self.gen.write(out_cmd)
+                    safe_write(self.gen, out_cmd)
         except:
             pass
 

@@ -5,33 +5,28 @@ import pyvisa
 from pathlib import Path
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
+
+CACHE_FILE = os.path.join(os.environ.get("TEMP", "/tmp"), "visa_devices.json")
+CACHE_TIMEOUT = 300  # 5 minutes
 
 
 def debug(msg):
-    """Print debug messages to stderr (won't break JSON parsing)"""
     print(f"DEBUG: {msg}", file=sys.stderr)
 
 
 def extract_prefix(model):
-    """
-    Turns a real instrument model number into its short family prefix,
-    e.g. 'MSO5074' -> 'MSO5', 'DG4102' -> 'DG4', 'DS1054Z' -> 'DS1'.
-    Rule: leading letters + the FIRST digit that follows them.
-    """
     m = re.match(r'^([A-Za-z]+\d)', model)
     return m.group(1).upper() if m else model.upper()
 
 
 class ConfigManager:
-    """Cache configuration files to avoid repeated disk reads"""
-
     def __init__(self, config_folder):
         self.config_folder = config_folder
         self.cache = {}
         self._load_all()
 
     def _load_all(self):
-        """Load all config files at once into cache"""
         if not self.config_folder.exists():
             debug(f"Config folder does not exist: {self.config_folder}")
             return
@@ -46,18 +41,10 @@ class ConfigManager:
                 debug(f"Failed to load {json_file.name}: {e}")
 
     def get(self, prefix):
-        """Get config by prefix (O(1) lookup)"""
         return self.cache.get(prefix)
-
-    def get_all(self):
-        """Return all cached configs"""
-        return self.cache
 
 
 def get_command(cfg, name, **values):
-    """Same helper used in visa_commander.py / linearite_gain.py, so
-    autoscale reuses whatever command name is in that instrument's
-    real config file instead of a hardcoded SCPI string."""
     if cfg is None:
         return None
     cmds = cfg.get("commands", {})
@@ -65,99 +52,118 @@ def get_command(cfg, name, **values):
         return None
     entry = cmds[name]
     cmd = entry.get("command", "") if isinstance(entry, dict) else entry
+    
+    for k, v in values.items():
+        token = "{" + k + "}"
+        if token in cmd:
+            cmd = cmd.replace(token, str(v))
+    
     return cmd
 
 
-def try_autoscale(inst, cfg):
+def apply_base_config(inst, cfg):
     """
-    Fires the oscilloscope's autoscale command (e.g. SYSTem:AUToscale on
-    Rigol scopes) so the display shows an actual trace instead of a flat
-    line, if any signal is present on the input at detection time.
-
-    NOTE: autoscale needs a live signal to actually find something to
-    scale to. If nothing is connected/outputting yet when detection
-    runs, this may not produce a meaningful result -- in that case, the
-    same command should also be called from visa_commander.py /
-    linearite_gain.py right before the real measurement, once an
-    actual signal (the flaw detector's pulse, or the generator's test
-    signal) is genuinely present.
-
-    Never raises -- a failed/skipped autoscale shouldn't break detection.
+    Apply base configuration to an instrument from the baseconfig section.
+    For oscilloscope: sets trigger, timebase, channel settings
+    For generator: SKIPPED - generator is configured by the test script itself
     """
-    cmd = get_command(cfg, "auto_scale")
-    if not cmd:
-        debug("No 'auto_scale' command in this scope's config -- skipping.")
+    base = cfg.get("baseconfig", {})
+    if not base:
+        debug("No baseconfig found - skipping")
         return False
-
+    
+    meta = cfg.get("meta", {})
+    inst_type = meta.get("deviceType", "unknown")
+    debug(f"Applying base config for {inst_type}")
+    
     try:
-        original_timeout = inst.timeout
-        inst.write(cmd)
-
-        # Autoscale is slow on real hardware (can take several seconds
-        # while it adjusts vertical/horizontal scale and trigger).
-        # Give it a generous timeout for the *OPC? sync, then restore
-        # the short scanning timeout afterward.
-        inst.timeout = 8000
-        try:
-            inst.query("*OPC?")
-        except Exception:
-            # Some scopes don't respond well to *OPC? after AUToscale --
-            # fall back to a fixed wait instead of failing outright.
-            time.sleep(3)
-        finally:
-            inst.timeout = original_timeout
-
-        debug(f"Autoscale command sent: {cmd}")
-        return True
+        if inst_type == "oscilloscope":
+            # Channel settings
+            channel_display_cmd = get_command(cfg, "channel_display", channel=1)
+            if channel_display_cmd:
+                inst.write(f"{channel_display_cmd} ON")
+                time.sleep(0.05)
+            
+            channel_scale_cmd = get_command(cfg, "channel_scale", channel=1)
+            scale_val = base.get("channel_scale", 0.5)
+            if channel_scale_cmd:
+                inst.write(f"{channel_scale_cmd} {scale_val}")
+                time.sleep(0.05)
+            
+            channel_impedance_cmd = get_command(cfg, "channel_impedance", channel=1)
+            imp_val = base.get("channel_impedance", 50)
+            if channel_impedance_cmd:
+                inst.write(f"{channel_impedance_cmd} {imp_val}")
+                time.sleep(0.05)
+            
+            # Trigger settings
+            trigger_source_cmd = get_command(cfg, "trigger_source")
+            src_val = base.get("trigger_source", "CH1")
+            if trigger_source_cmd:
+                inst.write(f"{trigger_source_cmd} {src_val}")
+                time.sleep(0.05)
+            
+            trigger_slope_cmd = get_command(cfg, "trigger_slope")
+            slope_val = base.get("trigger_slope", "NEGative")
+            if trigger_slope_cmd:
+                inst.write(f"{trigger_slope_cmd} {slope_val}")
+                time.sleep(0.05)
+            
+            trigger_level_cmd = get_command(cfg, "trigger_level")
+            level_val = base.get("trigger_level", 0.5)
+            if trigger_level_cmd:
+                inst.write(f"{trigger_level_cmd} {level_val}")
+                time.sleep(0.05)
+            
+            # Timebase
+            timebase_cmd = get_command(cfg, "timebase_scale")
+            tb_val = base.get("timebase", 2e-8)
+            if timebase_cmd:
+                inst.write(f"{timebase_cmd} {tb_val}")
+                time.sleep(0.05)
+            
+            debug("Oscilloscope base config applied")
+            return True
+            
+        elif inst_type == "generator":
+            # SKIP generator configuration - it will be configured by the test script
+            # (linearite_gain.py for LDG, lva_measurement.py for LVA, etc.)
+            debug("Skipping generator base config - will be configured by test script")
+            return True
+        
+        return False
     except Exception as e:
-        debug(f"Autoscale failed (non-fatal): {e}")
+        debug(f"Failed to apply base config: {e}")
         return False
 
 
 def scan_resource(resource_name, rm, config_manager):
-    """
-    Scan a single VISA resource - each thread opens its own connection.
-    This is thread-safe because each thread has its own VISA session.
-    """
     try:
-        # Open resource in this thread
         with rm.open_resource(resource_name) as temp_inst:
-            temp_inst.timeout = 1000  # 1 second timeout for scanning
-
-            # Query IDN
+            temp_inst.timeout = 3000
             idn = temp_inst.query("*IDN?").strip()
             debug(f"Found instrument: {idn}")
 
-            # Parse IDN: Manufacturer,Model,Serial,Version
             parts = [p.strip() for p in idn.split(",")]
             if len(parts) < 2:
-                debug(f"Could not parse IDN (expected 4 comma-separated fields): {idn}")
+                debug(f"Could not parse IDN: {idn}")
                 return None
 
             manufacturer_from_idn = parts[0]
             model = parts[1]
-
-            # Extract prefix (e.g., MSO5074 -> MSO5)
             prefix = extract_prefix(model)
             debug(f"Model '{model}' -> prefix '{prefix}'")
 
-            # Try to find config for this prefix
             cfg = config_manager.get(prefix)
             if cfg is None:
                 debug(f"No config file found for prefix '{prefix}'")
                 return None
 
-            # Get device info from config
             meta = cfg.get("meta", {})
             inst_type = meta.get("deviceType", "unknown")
             manufacturer = meta.get("manufacturer", manufacturer_from_idn)
 
             debug(f"Matched! {inst_type} = {idn}")
-
-            # If this is an oscilloscope, wake its display up with
-            # autoscale so it isn't just showing a flat line.
-            if inst_type == "oscilloscope":
-                try_autoscale(temp_inst, cfg)
 
             return {
                 "type": inst_type,
@@ -165,7 +171,7 @@ def scan_resource(resource_name, rm, config_manager):
                 "resource": resource_name,
                 "manufacturer": manufacturer,
                 "prefix": prefix,
-                "config": cfg  # Pass the full config to avoid re-reading later
+                "config": cfg
             }
 
     except pyvisa.errors.VisaIOError as e:
@@ -176,77 +182,114 @@ def scan_resource(resource_name, rm, config_manager):
         return None
 
 
-def get_devices():
-    """
-    Main function: detect VISA instruments and return JSON with configs.
-    Uses parallel scanning for speed.
-    """
+def is_cache_valid():
+    if not os.path.exists(CACHE_FILE):
+        return False
+    try:
+        file_time = os.path.getmtime(CACHE_FILE)
+        if (time.time() - file_time) < CACHE_TIMEOUT:
+            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                json.load(f)
+            return True
+    except Exception as e:
+        debug(f"Cache validation failed: {e}")
+    return False
+
+
+def load_from_cache():
+    try:
+        with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        debug(f"Failed to load cache: {e}")
+        return None
+
+
+def save_to_cache(devices):
+    try:
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(devices, f, indent=2)
+        debug(f"Saved to cache: {CACHE_FILE}")
+        return True
+    except Exception as e:
+        debug(f"Failed to save cache: {e}")
+        return False
+
+
+def delete_cache():
+    try:
+        if os.path.exists(CACHE_FILE):
+            os.remove(CACHE_FILE)
+            debug("Cache deleted")
+            return True
+    except Exception as e:
+        debug(f"Failed to delete cache: {e}")
+    return False
+
+
+def run_detection(force_refresh=False):
+    if not force_refresh and is_cache_valid():
+        cached = load_from_cache()
+        if cached:
+            debug("Using cached detection results")
+            return cached
+    
+    if os.path.exists(CACHE_FILE):
+        delete_cache()
+    
+    debug("Running fresh detection...")
+    
     rm = pyvisa.ResourceManager()
-    rm.timeout = 1000  # 1 second timeout for resource manager
+    rm.timeout = 1000
 
     try:
-        # Get all available resources
         all_resources = rm.list_resources()
         debug(f"Found {len(all_resources)} total resources")
 
-        # Filter to only USB and TCPIP (skip serial/GPIB for speed)
         instruments = [r for r in all_resources if "USB" in r or "TCPIP" in r]
         if not instruments:
             debug("No USB/TCPIP resources found, falling back to all resources")
             instruments = all_resources
 
-        # FIXED: Check if no instruments were found
         if len(instruments) == 0:
             debug("No VISA instruments detected.")
-            print(json.dumps({}))
             try:
                 rm.close()
-            except Exception:
+            except:
                 pass
-            return
+            return {}
 
         debug(f"Scanning {len(instruments)} resources")
 
     except Exception as e:
         debug(f"Error listing resources: {e}")
-        print(json.dumps({}))
         try:
             rm.close()
-        except Exception:
+        except:
             pass
-        return
+        return {}
 
-    # Initialize config manager
     config_folder = Path(__file__).parent / "instrument_configs"
     config_manager = ConfigManager(config_folder)
-
-    # Dictionary to store detected devices (supports multiple devices per type)
     detected_devices = {}
 
-    # Parallel scanning using ThreadPoolExecutor
-    # Each thread opens its own VISA connection (thread-safe)
-    max_workers = min(6, len(instruments))  # Don't create more threads than needed
+    max_workers = min(6, len(instruments))
     debug(f"Using {max_workers} parallel workers")
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all scan tasks
         futures = {
             executor.submit(scan_resource, resource, rm, config_manager): resource
             for resource in instruments
         }
 
-        # Collect results as they complete
         for future in as_completed(futures):
             resource = futures[future]
             try:
                 result = future.result(timeout=10)
                 if result:
                     inst_type = result["type"]
-
-                    # Store all devices of each type (support multiple scopes)
                     if inst_type not in detected_devices:
                         detected_devices[inst_type] = []
-
                     detected_devices[inst_type].append({
                         "idn": result["idn"],
                         "resource": result["resource"],
@@ -254,7 +297,6 @@ def get_devices():
                         "prefix": result["prefix"],
                         "config": result["config"]
                     })
-
                     debug(f"Added {inst_type}: {result['idn']}")
 
             except TimeoutError:
@@ -262,15 +304,46 @@ def get_devices():
             except Exception as e:
                 debug(f"Error collecting result for {resource}: {e}")
 
-    # Close the resource manager
     try:
         rm.close()
-    except Exception:
+    except:
         pass
 
-    # Output JSON to stdout (this is the ONLY thing that goes to stdout)
+    # --- APPLY BASE CONFIG TO DETECTED INSTRUMENTS (oscilloscope only) ---
+    for inst_type, devices in detected_devices.items():
+        for device in devices:
+            cfg = device.get("config")
+            if cfg and inst_type == "oscilloscope":
+                try:
+                    debug(f"Applying base config to {inst_type} on {device['resource']}")
+                    with pyvisa.ResourceManager() as temp_rm:
+                        temp_inst = temp_rm.open_resource(device["resource"])
+                        temp_inst.timeout = 3000
+                        apply_base_config(temp_inst, cfg)
+                        temp_inst.close()
+                    debug(f"Base config applied to {device['resource']}")
+                except Exception as e:
+                    debug(f"Failed to apply base config to {device['resource']}: {e}")
+            elif cfg and inst_type == "generator":
+                debug(f"Skipping generator config for {device['resource']} - will be configured by test script")
+
+    save_to_cache(detected_devices)
+    
     debug(f"Detection complete. Found: {list(detected_devices.keys())}")
-    print(json.dumps(detected_devices))
+    return detected_devices
+
+
+def get_devices():
+    force_refresh = "--refresh" in sys.argv
+    clear_cache = "--clear" in sys.argv
+    
+    if clear_cache:
+        delete_cache()
+        print(json.dumps({"status": "cache_cleared"}))
+        return
+    
+    result = run_detection(force_refresh)
+    print(json.dumps(result))
 
 
 if __name__ == "__main__":

@@ -35,6 +35,7 @@ Partial Class UcImpulsion
         btnSuivant = New Button()
         btnThreeDots = New Button()
         cmsAppareils = New ContextMenuStrip(components)
+        Label3 = New Label()
         TableLayoutPanel1.SuspendLayout()
         CType(dgvImpulsions, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
@@ -87,7 +88,7 @@ Partial Class UcImpulsion
         d.Padding = New Padding(9, 0, 0, 0)
         d.Size = New Size(1022, 40)
         d.TabIndex = 1
-        d.Text = " Avant de connecter la prise T/R de l'appareil à l'oscilloscope s'assurer d'avoir protégé l'entrée de l'oscilloscope avec un atténuateur d'une valeur mini d'au moins 20 dB."
+        d.Text = " Avant de connecter la prise T/R de l'appareil à l'oscilloscope s'assurer d'avoir protégé l'entrée de l'oscilloscope avec un atténuateur d'une valeur mini d'au moins 40 dB."
         d.UseCompatibleTextRendering = True
         ' 
         ' dgvImpulsions
@@ -169,10 +170,20 @@ Partial Class UcImpulsion
         cmsAppareils.Name = "cmsAppareils"
         cmsAppareils.Size = New Size(61, 4)
         ' 
+        ' Label3
+        ' 
+        Label3.AutoSize = True
+        Label3.Location = New Point(36, 460)
+        Label3.Name = "Label3"
+        Label3.Size = New Size(201, 15)
+        Label3.TabIndex = 13
+        Label3.Text = "Vérifiez les réglages de l'oscilloscope."
+        ' 
         ' UcImpulsion
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
+        Controls.Add(Label3)
         Controls.Add(btnThreeDots)
         Controls.Add(btnPrecedent)
         Controls.Add(btnSuivant)
@@ -204,5 +215,6 @@ Partial Class UcImpulsion
     Friend WithEvents btnSuivant As Button
     Friend WithEvents btnThreeDots As Button
     Friend WithEvents cmsAppareils As ContextMenuStrip
+    Friend WithEvents Label3 As Label
 
 End Class
