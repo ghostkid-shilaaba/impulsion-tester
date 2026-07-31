@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.IO
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports System.Globalization
 
 Public Class UcLDG
 
@@ -335,15 +336,30 @@ Public Class UcLDG
         Dim freq As Double
         Dim tension As Double
 
-        If Not Double.TryParse(txtFreq.Text, freq) Then
-            MessageBox.Show("La fréquence doit être un nombre valide.",
-                            "Format invalide", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Dim freqText As String = txtFreq.Text.Trim().Replace(","c, "."c)
+        Dim tensionText As String = txtTension.Text.Trim().Replace(","c, "."c)
+
+        If Not Double.TryParse(freqText,
+                       NumberStyles.Float,
+                       CultureInfo.InvariantCulture,
+                       freq) Then
+
+            MessageBox.Show("La fréquence doit être un nombre valide (ex: 5.1 ou 5,1).",
+                    "Format invalide",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error)
             Return
         End If
 
-        If Not Double.TryParse(txtTension.Text, tension) Then
-            MessageBox.Show("La tension Vcc doit être un nombre valide.",
-                            "Format invalide", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        If Not Double.TryParse(tensionText,
+                       NumberStyles.Float,
+                       CultureInfo.InvariantCulture,
+                       tension) Then
+
+            MessageBox.Show("La tension Vcc doit être un nombre valide (ex: 0.40 ou 0,40).",
+                    "Format invalide",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error)
             Return
         End If
 

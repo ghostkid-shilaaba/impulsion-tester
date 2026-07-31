@@ -237,10 +237,10 @@ def ask_operator_for_screen_read(measured_voltage, calculated_percent, iso_targe
         "measured_voltage": measured_voltage,
         "calculated_percent": calculated_percent,
         "iso_target": iso_target,
-        "message": f"Tension mesurée: {measured_voltage:.4f} V\n" +
+        "message": f"Tension mesuree: {measured_voltage:.4f} V\n" +
                    f"ISO Target: {iso_target:.1f}%\n" +
-                   f"% écran calculé: {calculated_percent:.1f}%\n\n" +
-                   "Veuillez entrer le % écran lu sur l'oscilloscope:"
+                   f"% ecran calcule: {calculated_percent:.1f}%\n\n" +
+                   "Veuillez entrer le % ecran lu sur l'oscilloscope:"
     }), flush=True)
     while True:
         try:
@@ -326,16 +326,16 @@ def run_lva_measurement():
         time.sleep(0.5)
 
         # Step 2: Setup reference
-        gain_msg = f" (gain recommandé: {gain} dB)" if gain else ""
+        gain_msg = f" (gain recommande: {gain} dB)" if gain else ""
         print(json.dumps({
             "type": MSG_SETUP_REFERENCE,
             "target_percent": reference_percent,
             "initial_voltage": initial_voltage,
             "frequency": frequency,
             "gain": gain,
-            "message": f"1. Réglez l'atténuateur sur +2 dB.\n" +
-                       f"2. Réglez le gain du DUT afin d'obtenir {reference_percent}% de hauteur d'écran{gain_msg}.\n" +
-                       "3. Cliquez sur OK une fois le réglage effectué."
+            "message": f"1. Reglez l'attenuateur sur +2 dB.\n" +
+                       f"2. Reglez le gain du DUT afin d'obtenir {reference_percent}% de hauteur d'ecran{gain_msg}.\n" +
+                       "3. Cliquez sur OK une fois le reglage effectue."
         }), flush=True)
 
         confirmed = False
@@ -365,7 +365,7 @@ def run_lva_measurement():
                 "iso_target": iso_target,
                 "progress": idx + 1,
                 "total": len(ATTENUATION_STEPS),
-                "message": f"Réglez l'atténuateur sur {db:+.1f} dB, puis cliquez sur OK"
+                "message": f"Reglez l'attenuateur sur {db:+.1f} dB, puis cliquez sur OK"
             }), flush=True)
 
             confirmed = False

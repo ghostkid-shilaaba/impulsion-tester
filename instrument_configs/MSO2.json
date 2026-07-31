@@ -5,12 +5,12 @@
     "models": [ "MSO2", "MSO2000A", "MSO2102A", "MSO2202A", "MSO2302A", "DS2000A", "DS2102A", "DS2202A", "DS2302A" ]
   },
   "baseconfig": {
-    "trigger_source": "CH1",
+    "trigger_source": "CHANnel1",
     "trigger_slope": "NEGative",
-    "trigger_level": 0.5,
-    "timebase": 2e-8,
+    "trigger_level": -0.5,
+    "timebase": 5e-8,
     "channel_scale": 0.5,
-    "channel_impedance": 50
+    "channel_impedance": "FIFTy"
   },
   "commands": {
     "identification": {

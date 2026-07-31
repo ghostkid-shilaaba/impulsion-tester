@@ -114,6 +114,10 @@ Public Class UcImpulsion
                 Dim parsed As Boolean = ParseDetectionResults(cacheData)
                 If parsed AndAlso isScopeConnected AndAlso isGenConnected Then
                     Debug.WriteLine("Utilisation du cache pour la détection hardware")
+                    ' Le cache ne garantit pas que la config de base (trigger,
+                    ' timebase, etc.) a déjà été poussée vers le scope -- on
+                    ' la réapplique systématiquement ici.
+                    RunPythonBaseConfig()
                     UpdateUIAfterDetection()
                     Return
                 End If
@@ -190,7 +194,14 @@ Public Class UcImpulsion
                     ' Le script Python sauvegarde automatiquement dans le cache
                     Using doc As JsonDocument = JsonDocument.Parse(output)
                         Dim root = doc.RootElement
-                        ParseDetectionResults(root)
+                        Dim parsed As Boolean = ParseDetectionResults(root)
+
+                        ' Détection fraîche réussie -> pousser la config de base
+                        ' (trigger, timebase, échelle/impédance de voie) vers le
+                        ' scope maintenant que visa_checker.py ne le fait plus.
+                        If parsed AndAlso isScopeConnected Then
+                            RunPythonBaseConfig()
+                        End If
                     End Using
                 Else
                     SafeInvoke(Sub()
@@ -213,6 +224,92 @@ Public Class UcImpulsion
         End Try
 
         UpdateUIAfterDetection()
+    End Sub
+
+    ''' <summary>
+    ''' Appelle visa_base_config.py pour pousser la config de base (trigger,
+    ''' timebase, échelle/impédance de voie) vers l'oscilloscope détecté.
+    ''' Ne fait rien pour le générateur (configuré par le script de test).
+    ''' Doit être appelée après une détection réussie (cache ou fraîche),
+    ''' avant que l'utilisateur ne lance une acquisition.
+    ''' </summary>
+    Private Sub RunPythonBaseConfig()
+        Try
+            If Not isScopeConnected OrElse String.IsNullOrEmpty(scopeResource) OrElse scopeConfig.ValueKind <> JsonValueKind.Object Then
+                Debug.WriteLine("RunPythonBaseConfig: scope non connecté ou config manquante, ignoré.")
+                Return
+            End If
+
+            Dim scriptPath As String = FindPythonScript("visa_base_config.py")
+            If String.IsNullOrEmpty(scriptPath) Then
+                Debug.WriteLine("visa_base_config.py introuvable -- config de base non appliquée.")
+                Return
+            End If
+
+            ' On construit un JSON minimal {"oscilloscope":[{"resource":..., "config":...}]}
+            ' pour éviter que visa_base_config.py ne relance une détection complète.
+            Dim resourceJson As String = JsonSerializer.Serialize(scopeResource)
+            Dim configRawJson As String = scopeConfig.GetRawText()
+            Dim jsonPayload As String =
+                "{""oscilloscope"":[{""resource"":" & resourceJson & ",""config"":" & configRawJson & "}]}"
+
+            Dim tempFile As String = Path.Combine(Path.GetTempPath(), $"visa_base_config_{Guid.NewGuid()}.json")
+            File.WriteAllText(tempFile, jsonPayload)
+
+            Try
+                Dim psi As New ProcessStartInfo()
+                psi.FileName = "python.exe"
+                psi.Arguments = $"""{scriptPath}"" ""{tempFile}"""
+                psi.RedirectStandardOutput = True
+                psi.RedirectStandardError = True
+                psi.UseShellExecute = False
+                psi.CreateNoWindow = True
+
+                Using p As Process = Process.Start(psi)
+                    Dim outputBuilder As New System.Text.StringBuilder()
+                    Dim errorBuilder As New System.Text.StringBuilder()
+
+                    AddHandler p.OutputDataReceived, Sub(sender, e)
+                                                         If e.Data IsNot Nothing Then
+                                                             outputBuilder.AppendLine(e.Data)
+                                                         End If
+                                                     End Sub
+
+                    AddHandler p.ErrorDataReceived, Sub(sender, e)
+                                                        If e.Data IsNot Nothing Then
+                                                            errorBuilder.AppendLine(e.Data)
+                                                        End If
+                                                    End Sub
+
+                    p.BeginOutputReadLine()
+                    p.BeginErrorReadLine()
+
+                    If Not p.WaitForExit(15000) Then
+                        Try
+                            p.Kill()
+                        Catch
+                            ' Ignore
+                        End Try
+                        Debug.WriteLine("visa_base_config.py a expiré (15 secondes).")
+                        Return
+                    End If
+
+                    If p.ExitCode <> 0 Then
+                        Debug.WriteLine($"visa_base_config.py erreur (code {p.ExitCode}) : {errorBuilder.ToString()}")
+                    Else
+                        Debug.WriteLine($"Config de base appliquée : {outputBuilder.ToString()}")
+                    End If
+                End Using
+            Finally
+                Try
+                    If File.Exists(tempFile) Then File.Delete(tempFile)
+                Catch
+                    ' Ignore
+                End Try
+            End Try
+        Catch ex As Exception
+            Debug.WriteLine($"RunPythonBaseConfig error: {ex.Message}")
+        End Try
     End Sub
 
     Private Function ParseDetectionResults(root As JsonElement) As Boolean

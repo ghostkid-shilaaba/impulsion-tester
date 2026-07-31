@@ -88,7 +88,7 @@ Partial Class UcImpulsion
         d.Padding = New Padding(9, 0, 0, 0)
         d.Size = New Size(1022, 40)
         d.TabIndex = 1
-        d.Text = " Avant de connecter la prise T/R de l'appareil à l'oscilloscope s'assurer d'avoir protégé l'entrée de l'oscilloscope avec un atténuateur d'une valeur mini d'au moins 40 dB."
+        d.Text = " Avant de connecter la prise T/R de l'appareil, s'assurer d'avoir protégé l'entrée de l'oscilloscope avec un atténuateur calibré d'une valeur  40 dB."
         d.UseCompatibleTextRendering = True
         ' 
         ' dgvImpulsions

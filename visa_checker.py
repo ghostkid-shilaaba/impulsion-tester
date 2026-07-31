@@ -30,7 +30,6 @@ class ConfigManager:
         if not self.config_folder.exists():
             debug(f"Config folder does not exist: {self.config_folder}")
             return
-
         for json_file in self.config_folder.glob("*.json"):
             try:
                 with open(json_file, "r", encoding="utf-8") as f:
@@ -52,89 +51,11 @@ def get_command(cfg, name, **values):
         return None
     entry = cmds[name]
     cmd = entry.get("command", "") if isinstance(entry, dict) else entry
-    
     for k, v in values.items():
         token = "{" + k + "}"
         if token in cmd:
             cmd = cmd.replace(token, str(v))
-    
     return cmd
-
-
-def apply_base_config(inst, cfg):
-    """
-    Apply base configuration to an instrument from the baseconfig section.
-    For oscilloscope: sets trigger, timebase, channel settings
-    For generator: SKIPPED - generator is configured by the test script itself
-    """
-    base = cfg.get("baseconfig", {})
-    if not base:
-        debug("No baseconfig found - skipping")
-        return False
-    
-    meta = cfg.get("meta", {})
-    inst_type = meta.get("deviceType", "unknown")
-    debug(f"Applying base config for {inst_type}")
-    
-    try:
-        if inst_type == "oscilloscope":
-            # Channel settings
-            channel_display_cmd = get_command(cfg, "channel_display", channel=1)
-            if channel_display_cmd:
-                inst.write(f"{channel_display_cmd} ON")
-                time.sleep(0.05)
-            
-            channel_scale_cmd = get_command(cfg, "channel_scale", channel=1)
-            scale_val = base.get("channel_scale", 0.5)
-            if channel_scale_cmd:
-                inst.write(f"{channel_scale_cmd} {scale_val}")
-                time.sleep(0.05)
-            
-            channel_impedance_cmd = get_command(cfg, "channel_impedance", channel=1)
-            imp_val = base.get("channel_impedance", 50)
-            if channel_impedance_cmd:
-                inst.write(f"{channel_impedance_cmd} {imp_val}")
-                time.sleep(0.05)
-            
-            # Trigger settings
-            trigger_source_cmd = get_command(cfg, "trigger_source")
-            src_val = base.get("trigger_source", "CH1")
-            if trigger_source_cmd:
-                inst.write(f"{trigger_source_cmd} {src_val}")
-                time.sleep(0.05)
-            
-            trigger_slope_cmd = get_command(cfg, "trigger_slope")
-            slope_val = base.get("trigger_slope", "NEGative")
-            if trigger_slope_cmd:
-                inst.write(f"{trigger_slope_cmd} {slope_val}")
-                time.sleep(0.05)
-            
-            trigger_level_cmd = get_command(cfg, "trigger_level")
-            level_val = base.get("trigger_level", 0.5)
-            if trigger_level_cmd:
-                inst.write(f"{trigger_level_cmd} {level_val}")
-                time.sleep(0.05)
-            
-            # Timebase
-            timebase_cmd = get_command(cfg, "timebase_scale")
-            tb_val = base.get("timebase", 2e-8)
-            if timebase_cmd:
-                inst.write(f"{timebase_cmd} {tb_val}")
-                time.sleep(0.05)
-            
-            debug("Oscilloscope base config applied")
-            return True
-            
-        elif inst_type == "generator":
-            # SKIP generator configuration - it will be configured by the test script
-            # (linearite_gain.py for LDG, lva_measurement.py for LVA, etc.)
-            debug("Skipping generator base config - will be configured by test script")
-            return True
-        
-        return False
-    except Exception as e:
-        debug(f"Failed to apply base config: {e}")
-        return False
 
 
 def scan_resource(resource_name, rm, config_manager):
@@ -173,7 +94,6 @@ def scan_resource(resource_name, rm, config_manager):
                 "prefix": prefix,
                 "config": cfg
             }
-
     except pyvisa.errors.VisaIOError as e:
         debug(f"VISA error with {resource_name}: {e}")
         return None
@@ -221,24 +141,29 @@ def delete_cache():
         if os.path.exists(CACHE_FILE):
             os.remove(CACHE_FILE)
             debug("Cache deleted")
-            return True
+        return True
     except Exception as e:
         debug(f"Failed to delete cache: {e}")
-    return False
+        return False
 
 
 def run_detection(force_refresh=False):
+    """
+    Detects VISA instruments and matches them against instrument_configs/.
+    Does NOT write any commands to any instrument -- pure detection only.
+    Use visa_base_config.py separately to push base config (trigger,
+    timebase, channel scale/impedance) to a detected oscilloscope.
+    """
     if not force_refresh and is_cache_valid():
         cached = load_from_cache()
         if cached:
             debug("Using cached detection results")
             return cached
-    
+
     if os.path.exists(CACHE_FILE):
         delete_cache()
-    
+
     debug("Running fresh detection...")
-    
     rm = pyvisa.ResourceManager()
     rm.timeout = 1000
 
@@ -260,7 +185,6 @@ def run_detection(force_refresh=False):
             return {}
 
         debug(f"Scanning {len(instruments)} resources")
-
     except Exception as e:
         debug(f"Error listing resources: {e}")
         try:
@@ -271,8 +195,8 @@ def run_detection(force_refresh=False):
 
     config_folder = Path(__file__).parent / "instrument_configs"
     config_manager = ConfigManager(config_folder)
-    detected_devices = {}
 
+    detected_devices = {}
     max_workers = min(6, len(instruments))
     debug(f"Using {max_workers} parallel workers")
 
@@ -281,7 +205,6 @@ def run_detection(force_refresh=False):
             executor.submit(scan_resource, resource, rm, config_manager): resource
             for resource in instruments
         }
-
         for future in as_completed(futures):
             resource = futures[future]
             try:
@@ -298,7 +221,6 @@ def run_detection(force_refresh=False):
                         "config": result["config"]
                     })
                     debug(f"Added {inst_type}: {result['idn']}")
-
             except TimeoutError:
                 debug(f"Timeout scanning {resource}")
             except Exception as e:
@@ -306,29 +228,10 @@ def run_detection(force_refresh=False):
 
     try:
         rm.close()
-    except:
+    except Exception:
         pass
 
-    # --- APPLY BASE CONFIG TO DETECTED INSTRUMENTS (oscilloscope only) ---
-    for inst_type, devices in detected_devices.items():
-        for device in devices:
-            cfg = device.get("config")
-            if cfg and inst_type == "oscilloscope":
-                try:
-                    debug(f"Applying base config to {inst_type} on {device['resource']}")
-                    with pyvisa.ResourceManager() as temp_rm:
-                        temp_inst = temp_rm.open_resource(device["resource"])
-                        temp_inst.timeout = 3000
-                        apply_base_config(temp_inst, cfg)
-                        temp_inst.close()
-                    debug(f"Base config applied to {device['resource']}")
-                except Exception as e:
-                    debug(f"Failed to apply base config to {device['resource']}: {e}")
-            elif cfg and inst_type == "generator":
-                debug(f"Skipping generator config for {device['resource']} - will be configured by test script")
-
     save_to_cache(detected_devices)
-    
     debug(f"Detection complete. Found: {list(detected_devices.keys())}")
     return detected_devices
 
@@ -336,12 +239,12 @@ def run_detection(force_refresh=False):
 def get_devices():
     force_refresh = "--refresh" in sys.argv
     clear_cache = "--clear" in sys.argv
-    
+
     if clear_cache:
         delete_cache()
         print(json.dumps({"status": "cache_cleared"}))
         return
-    
+
     result = run_detection(force_refresh)
     print(json.dumps(result))
 
