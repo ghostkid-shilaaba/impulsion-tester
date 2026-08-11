@@ -13,6 +13,7 @@ Public Class UcLVA
 
     Public Event SuivantClicked As EventHandler
     Public Event PrecedentClicked As EventHandler
+    Public Shared ModeleId As Integer
 
     ' Python message type constants (must match the Python script)
     Private Const MSG_SETUP_REFERENCE As String = "setup_reference"
@@ -65,25 +66,36 @@ Public Class UcLVA
     Private Sub UcLVA_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         txtFreq.Text = "5.00"
         txtTension.Text = "0.40"
-        _currentGain = LoadGainFromDatabase()
+
+        _currentGain = LoadGainFromDatabase(ModeleId)
+
         UpdateTitle(_currentGain)
         VerifyConnections()
     End Sub
 
-    Private Function LoadGainFromDatabase() As Double
+    Private Function LoadGainFromDatabase(modeleId As Integer) As Double
         Try
             Using conn As New SQLiteConnection(DatabaseHelper.connectionString)
                 conn.Open()
-                Dim query As String = "SELECT gain FROM ModelesAppareils WHERE modele_id = @modeleId"
+
+                Dim query As String =
+                "SELECT gain FROM ModelesAppareils WHERE modele_id = @modeleId"
+
                 Using cmd As New SQLiteCommand(query, conn)
-                    cmd.Parameters.AddWithValue("@modeleId", 1)
+                    cmd.Parameters.AddWithValue("@modeleId", modeleId)
+
                     Dim result = cmd.ExecuteScalar()
-                    If result IsNot Nothing AndAlso Not IsDBNull(result) Then Return Convert.ToDouble(result)
+
+                    If result IsNot Nothing AndAlso Not IsDBNull(result) Then
+                        Return Convert.ToDouble(result)
+                    End If
                 End Using
             End Using
+
         Catch ex As Exception
             Debug.WriteLine($"Failed to load gain: {ex.Message}")
         End Try
+
         Return 0
     End Function
 
@@ -287,6 +299,7 @@ Public Class UcLVA
     End Sub
 
     Private Async Function RunLVAacquisition(token As CancellationToken, freq As Double, tension As Double) As Task
+        Dim errorBuilder As New System.Text.StringBuilder()
         Try
             Dim scriptPath As String = FindPythonScript("lva_measurement.py")
             If String.IsNullOrEmpty(scriptPath) Then
@@ -302,7 +315,6 @@ Public Class UcLVA
             Using p As Process = Process.Start(psi)
                 _pythonProcess = p : _streamWriter = p.StandardInput : _streamReader = p.StandardOutput
 
-                Dim errorBuilder As New System.Text.StringBuilder()
                 AddHandler p.ErrorDataReceived,
     Sub(s, e)
         If e.Data IsNot Nothing Then
@@ -433,6 +445,13 @@ Public Class UcLVA
             End Using
         Catch ex As Exception
             If token.IsCancellationRequested Then Return
+            Dim stderrText As String = ""
+            SyncLock _errorLock
+                stderrText = errorBuilder.ToString()
+            End SyncLock
+            If Not String.IsNullOrWhiteSpace(stderrText) Then
+                Throw New Exception($"{ex.Message}" & vbCrLf & vbCrLf & "Sortie Python (stderr) :" & vbCrLf & stderrText, ex)
+            End If
             Throw
         Finally
             _pythonProcess = Nothing : _streamWriter = Nothing : _streamReader = Nothing

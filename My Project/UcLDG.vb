@@ -27,6 +27,7 @@ Public Class UcLDG
     Private _streamReader As StreamReader = Nothing
     Private _requestId As Integer = 0
     Private ReadOnly _errorLock As New Object()
+    Private _resultsForm As LineariteGainResultsForm = Nothing
 
     Private Sub SafeInvoke(action As Action)
         If Me.IsHandleCreated AndAlso Not Me.IsDisposed AndAlso Me.InvokeRequired Then
@@ -487,6 +488,16 @@ Public Class UcLDG
                     End If
                 End Using
 
+                ' Ouvrir la fenêtre de résultats dès le début de l'acquisition,
+                ' vide, et la remplir mesure par mesure au fur et à mesure
+                ' (au lieu d'attendre la fin pour tout afficher d'un coup).
+                SafeInvoke(Sub()
+                               _resultsForm = New LineariteGainResultsForm()
+                               _resultsForm.Owner = Me.FindForm()
+                               _resultsForm.Show()
+                               _resultsForm.BringToFront()
+                           End Sub)
+
                 Dim gainSteps As Double() = {10.0, 15.0, 16.0, 17.0, 20.0, 25.0, 26.0, 27.0, 30.0, 35.0,
                                              36.0, 37.0, 40.0, 45.0, 46.0, 47.0, 50.0, 55.0, 56.0, 57.0, 60.0}
 
@@ -562,14 +573,19 @@ Public Class UcLDG
                         End If
 
                         If doc.RootElement.GetProperty("success").GetBoolean() Then
-                            ' Continue to next step
+                            ' Ligne remplie en direct dans la fenêtre de résultats,
+                            ' pendant que l'acquisition continue.
+                            Dim resultClone As JsonElement = doc.RootElement.Clone()
+                            SafeInvoke(Sub() _resultsForm?.AddResult(resultClone))
                         Else
                             Dim errMsg As String = "Erreur inconnue"
                             Dim errEl As JsonElement
                             If doc.RootElement.TryGetProperty("error", errEl) AndAlso errEl.ValueKind = JsonValueKind.String Then
                                 errMsg = errEl.GetString()
                             End If
+                            Dim errClone As JsonElement = doc.RootElement.Clone()
                             SafeInvoke(Sub()
+                                           _resultsForm?.AddResult(errClone)
                                            MessageBox.Show($"Erreur à {gain} dB : {errMsg}",
                                                            "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
                                        End Sub)
@@ -620,12 +636,11 @@ Public Class UcLDG
 
                         If doc.RootElement.GetProperty("success").GetBoolean() Then
                             resultsArray = doc.RootElement.GetProperty("results")
-                            If resultsArray.GetArrayLength() > 0 Then
-                                SafeInvoke(Sub()
-                                               Dim resultsForm As New LineariteGainResultsForm(resultsArray.Clone())
-                                               resultsForm.ShowDialog()
-                                           End Sub)
-                            Else
+                            ' Les lignes ont déjà été ajoutées en direct pendant la
+                            ' boucle ci-dessus ; la ligne "Ecarts maxi" est ajoutée
+                            ' automatiquement dans le bloc Finally, quelle que soit
+                            ' l'issue de l'acquisition.
+                            If resultsArray.GetArrayLength() = 0 Then
                                 SafeInvoke(Sub()
                                                MessageBox.Show("Aucun résultat obtenu.",
                                                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
@@ -674,6 +689,16 @@ Public Class UcLDG
             _pythonProcess = Nothing
             _streamWriter = Nothing
             _streamReader = Nothing
+            ' Que l'acquisition se termine normalement, soit annulée, soit en
+            ' erreur : on clôt le tableau déjà rempli avec la ligne "Ecarts
+            ' maxi" à partir de ce qui a été mesuré jusque-là, puis on oublie
+            ' la référence pour que la prochaine acquisition ouvre une
+            ' nouvelle fenêtre plutôt que de continuer à remplir l'ancienne.
+            Dim formToFinalize = _resultsForm
+            _resultsForm = Nothing
+            If formToFinalize IsNot Nothing Then
+                SafeInvoke(Sub() formToFinalize.FinalizeSummary())
+            End If
         End Try
     End Function
 
@@ -726,4 +751,6 @@ Public Class UcLDG
     Private Sub btnSuivant_Click(sender As Object, e As EventArgs) Handles BtnSuivant.Click
         RaiseEvent SuivantClicked(Me, EventArgs.Empty)
     End Sub
+
+
 End Class

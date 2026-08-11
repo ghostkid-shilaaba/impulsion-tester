@@ -46,6 +46,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="My Project\AppareilsDB.sqlite">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="My Project\LogicielBancDeTest1.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="reponse_frequence.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="visa_base_config.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

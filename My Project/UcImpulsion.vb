@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.Generic
+Imports System.Data.SQLite
 Imports System.Diagnostics
 Imports System.Globalization
 Imports System.IO
@@ -13,6 +14,9 @@ Public Class UcImpulsion
     ' ------------------------------------------------------------------
     Public Event SuivantClicked As EventHandler
     Public Event PrecedentClicked As EventHandler
+    Public Shared ModeleId As Integer
+
+
 
     Private isScopeConnected As Boolean = False
     Private isGenConnected As Boolean = False
@@ -30,6 +34,15 @@ Public Class UcImpulsion
     Private scopeConfig As JsonElement = Nothing
     Private generatorConfig As JsonElement = Nothing
 
+    ' Les réglages de base (trigger, timebase, échelle/impédance de voie)
+    ' ne sont plus poussés automatiquement au chargement du contrôle -- ils
+    ' ne le sont qu'au clic sur BttnReg. Ce drapeau permet de bloquer
+    ' l'acquisition tant que l'opérateur ne l'a pas fait explicitement au
+    ' moins une fois pour la connexion en cours ; il est remis à False à
+    ' chaque nouvelle détection (cache ou re-scan), puisqu'une nouvelle
+    ' connexion/config d'oscillo n'a pas encore reçu ses réglages de base.
+    Private _baseConfigApplied As Boolean = False
+
     ' Helper to safely invoke UI actions from background threads
     Private Sub SafeInvoke(action As Action)
         If Me.IsHandleCreated AndAlso Me.InvokeRequired Then
@@ -44,6 +57,7 @@ Public Class UcImpulsion
 
         ' Hook up the Disposed event for cleanup
         AddHandler Me.Disposed, AddressOf UcImpulsion_Disposed
+
     End Sub
 
     Private Sub UcImpulsion_Disposed(sender As Object, e As EventArgs)
@@ -60,11 +74,7 @@ Public Class UcImpulsion
 
     Private Sub UcImpulsion_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ConfigurerGrille()
-
-        If cmbNbImpulsions.Items.Count > 0 Then
-            cmbNbImpulsions.SelectedIndex = 0
-        End If
-
+        RefreshForModel()
         VerifyConnections()
     End Sub
 
@@ -94,7 +104,35 @@ Public Class UcImpulsion
             dgvImpulsions.Rows.Add($"Impulsion {i}", "", "", "", "En attente")
         Next
     End Sub
+    Public Sub RefreshForModel()
+        RemoveHandler cmbNbImpulsions.SelectedIndexChanged, AddressOf cmbNbImpulsions_SelectedIndexChanged
+        Try
+            ChargerImpulsions()
+            Dim loadedCount As Integer = dgvImpulsions.Rows.Count
 
+            If loadedCount > 0 Then
+                Dim idx As Integer = -1
+                For i As Integer = 0 To cmbNbImpulsions.Items.Count - 1
+                    If Convert.ToInt32(cmbNbImpulsions.Items(i)) = loadedCount Then
+                        idx = i
+                        Exit For
+                    End If
+                Next
+                cmbNbImpulsions.SelectedIndex = If(idx >= 0, idx, 0)
+            ElseIf cmbNbImpulsions.Items.Count > 0 Then
+                cmbNbImpulsions.SelectedIndex = 0
+            End If
+        Finally
+            AddHandler cmbNbImpulsions.SelectedIndexChanged, AddressOf cmbNbImpulsions_SelectedIndexChanged
+        End Try
+
+        If dgvImpulsions.Rows.Count = 0 AndAlso cmbNbImpulsions.SelectedItem IsNot Nothing Then
+            Dim nbImpulsions As Integer = Convert.ToInt32(cmbNbImpulsions.SelectedItem)
+            For i As Integer = 1 To nbImpulsions
+                dgvImpulsions.Rows.Add($"Impulsion {i}", "", "", "", "En attente")
+            Next
+        End If
+    End Sub
     ' ------------------------------------------------------------------
     ' DÉTECTION HARDWARE (Avec Cache)
     ' ------------------------------------------------------------------
@@ -107,6 +145,10 @@ Public Class UcImpulsion
         scopeConfig = Nothing
         generatorConfig = Nothing
 
+        ' Nouvelle détection en cours -> les réglages de base devront être
+        ' réappliqués manuellement (bouton BttnReg) pour cette connexion.
+        _baseConfigApplied = False
+
         ' 1. ESSAYER LE CACHE D'ABORD
         If VisaCacheHelper.HasValidCache() Then
             Dim cacheData = VisaCacheHelper.LoadFromCache()
@@ -114,10 +156,9 @@ Public Class UcImpulsion
                 Dim parsed As Boolean = ParseDetectionResults(cacheData)
                 If parsed AndAlso isScopeConnected AndAlso isGenConnected Then
                     Debug.WriteLine("Utilisation du cache pour la détection hardware")
-                    ' Le cache ne garantit pas que la config de base (trigger,
-                    ' timebase, etc.) a déjà été poussée vers le scope -- on
-                    ' la réapplique systématiquement ici.
-                    RunPythonBaseConfig()
+                    ' Les réglages de base (trigger, timebase, échelle/
+                    ' impédance de voie) ne sont plus poussés ici -- voir
+                    ' BttnReg_Click. On se contente de mettre l'UI à jour.
                     UpdateUIAfterDetection()
                     Return
                 End If
@@ -194,14 +235,9 @@ Public Class UcImpulsion
                     ' Le script Python sauvegarde automatiquement dans le cache
                     Using doc As JsonDocument = JsonDocument.Parse(output)
                         Dim root = doc.RootElement
-                        Dim parsed As Boolean = ParseDetectionResults(root)
-
-                        ' Détection fraîche réussie -> pousser la config de base
-                        ' (trigger, timebase, échelle/impédance de voie) vers le
-                        ' scope maintenant que visa_checker.py ne le fait plus.
-                        If parsed AndAlso isScopeConnected Then
-                            RunPythonBaseConfig()
-                        End If
+                        ParseDetectionResults(root)
+                        ' Les réglages de base ne sont plus poussés
+                        ' automatiquement ici -- voir BttnReg_Click.
                     End Using
                 Else
                     SafeInvoke(Sub()
@@ -230,19 +266,27 @@ Public Class UcImpulsion
     ''' Appelle visa_base_config.py pour pousser la config de base (trigger,
     ''' timebase, échelle/impédance de voie) vers l'oscilloscope détecté.
     ''' Ne fait rien pour le générateur (configuré par le script de test).
-    ''' Doit être appelée après une détection réussie (cache ou fraîche),
-    ''' avant que l'utilisateur ne lance une acquisition.
+    ''' Déclenchée manuellement par BttnReg_Click -- plus automatiquement
+    ''' après détection.
     ''' </summary>
     Private Sub RunPythonBaseConfig()
         Try
             If Not isScopeConnected OrElse String.IsNullOrEmpty(scopeResource) OrElse scopeConfig.ValueKind <> JsonValueKind.Object Then
                 Debug.WriteLine("RunPythonBaseConfig: scope non connecté ou config manquante, ignoré.")
+                SafeInvoke(Sub()
+                               MessageBox.Show("Oscilloscope non détecté. Re-scannez les appareils avant d'appliquer les réglages de base.",
+                                               "Connexion Hardware", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                           End Sub)
                 Return
             End If
 
             Dim scriptPath As String = FindPythonScript("visa_base_config.py")
             If String.IsNullOrEmpty(scriptPath) Then
                 Debug.WriteLine("visa_base_config.py introuvable -- config de base non appliquée.")
+                SafeInvoke(Sub()
+                               MessageBox.Show("Impossible de trouver visa_base_config.py.",
+                                               "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                           End Sub)
                 Return
             End If
 
@@ -291,14 +335,29 @@ Public Class UcImpulsion
                             ' Ignore
                         End Try
                         Debug.WriteLine("visa_base_config.py a expiré (15 secondes).")
+                        SafeInvoke(Sub()
+                                       MessageBox.Show("visa_base_config.py a expiré (15 secondes).",
+                                                       "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                   End Sub)
                         Return
                     End If
 
                     If p.ExitCode <> 0 Then
-                        Debug.WriteLine($"visa_base_config.py erreur (code {p.ExitCode}) : {errorBuilder.ToString()}")
-                    Else
-                        Debug.WriteLine($"Config de base appliquée : {outputBuilder.ToString()}")
+                        Dim errMsg As String = errorBuilder.ToString()
+                        Debug.WriteLine($"visa_base_config.py erreur (code {p.ExitCode}) : {errMsg}")
+                        SafeInvoke(Sub()
+                                       MessageBox.Show($"Échec de l'application des réglages de base (code {p.ExitCode}) : {errMsg}",
+                                                       "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                   End Sub)
+                        Return
                     End If
+
+                    Debug.WriteLine($"Config de base appliquée : {outputBuilder.ToString()}")
+                    _baseConfigApplied = True
+                    SafeInvoke(Sub()
+                                   MessageBox.Show("Réglages de base appliqués à l'oscilloscope (trigger, timebase, échelle/impédance de voie).",
+                                                   "Réglages de base", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                               End Sub)
                 End Using
             Finally
                 Try
@@ -309,6 +368,24 @@ Public Class UcImpulsion
             End Try
         Catch ex As Exception
             Debug.WriteLine($"RunPythonBaseConfig error: {ex.Message}")
+            SafeInvoke(Sub()
+                           MessageBox.Show($"Erreur lors de l'application des réglages de base : {ex.Message}",
+                                           "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                       End Sub)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Déclenche l'application des réglages de base de l'oscilloscope
+    ''' (trigger, timebase, échelle/impédance de voie). Remplace
+    ''' l'ancienne exécution automatique au chargement du contrôle.
+    ''' </summary>
+    Private Sub BttnReg_Click(sender As Object, e As EventArgs) Handles BttnReg.Click
+        BttnReg.Enabled = False
+        Try
+            RunPythonBaseConfig()
+        Finally
+            BttnReg.Enabled = isScopeConnected
         End Try
     End Sub
 
@@ -385,6 +462,8 @@ Public Class UcImpulsion
                            btnAcquerir.Enabled = True
                        End If
 
+                       BttnReg.Enabled = isScopeConnected
+
                        UpdateContextMenu(scopeIdn, generatorIdn)
                    End Sub)
     End Sub
@@ -458,6 +537,19 @@ Public Class UcImpulsion
     End Sub
 
     Private Sub btnAcquerir_Click(sender As Object, e As EventArgs) Handles btnAcquerir.Click
+        If Not _baseConfigApplied Then
+            Dim result As DialogResult = MessageBox.Show(
+                "Les réglages de base de l'oscilloscope (trigger, timebase, échelle/impédance) " &
+                "n'ont pas encore été appliqués pour cette connexion." & vbCrLf & vbCrLf &
+                "Cliquez sur le bouton ""Réglages de base"" avant l'acquisition, sinon les mesures " &
+                "risquent d'être invalides." & vbCrLf & vbCrLf &
+                "Continuer quand même ?",
+                "Réglages de base non appliqués",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning)
+            If result <> DialogResult.Yes Then Return
+        End If
+
         btnAcquerir.Enabled = False
         btnArreter.Enabled = True
 
@@ -805,6 +897,35 @@ Public Class UcImpulsion
         SafeInvoke(Sub()
                        MessageBox.Show("Acquisition interrompue.", "Interruption", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                    End Sub)
+    End Sub
+    Private Sub ChargerImpulsions()
+        dgvImpulsions.Rows.Clear()
+
+        Using conn As New SQLiteConnection(DatabaseHelper.connectionString)
+            conn.Open()
+
+            Dim query As String =
+            "SELECT numero, tension, amortissement, prf
+             FROM Impulsions
+             WHERE modele_id = @modeleId
+             ORDER BY numero"
+
+            Using cmd As New SQLiteCommand(query, conn)
+                cmd.Parameters.AddWithValue("@modeleId", ModeleId)
+
+                Using reader = cmd.ExecuteReader()
+                    While reader.Read()
+                        dgvImpulsions.Rows.Add(
+                        $"Impulsion {reader("numero")}",
+                        reader("tension").ToString(),
+                        reader("amortissement").ToString(),
+                        reader("prf").ToString(),
+                        "En attente"
+                    )
+                    End While
+                End Using
+            End Using
+        End Using
     End Sub
 
     Private Sub btnPrecedent_Click(sender As Object, e As EventArgs) Handles btnPrecedent.Click

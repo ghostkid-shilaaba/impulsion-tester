@@ -8,9 +8,11 @@
     "trigger_source": "CHANnel1",
     "trigger_slope": "NEGative",
     "trigger_level": -0.5,
-    "timebase": 5e-8,
+    "timebase": 10e-8,
     "channel_scale": 0.5,
-    "channel_impedance": "FIFTy"
+    "channel_impedance": "FIFTy",
+    "channel_offset": 2,
+    "acquisition_averages": 32
   },
   "commands": {
     "identification": {

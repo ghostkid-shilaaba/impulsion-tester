@@ -37,13 +37,15 @@ Partial Class FormGestionAppareils
         txtNouveauModele = New TextBox()
         btnSupprimerMod = New Button()
         GroupBox3 = New GroupBox()
+        bttnAj = New Button()
+        bttnSup = New Button()
+        cmbFiltre = New ComboBox()
+        BttnImpulsion = New Button()
+        Label15 = New Label()
         txtFreq = New TextBox()
         Label14 = New Label()
-        Label13 = New Label()
         txtGain = New TextBox()
         cmbMode = New ComboBox()
-        txtFiltreMax = New TextBox()
-        txtFiltreMin = New TextBox()
         txtEchelle = New TextBox()
         txtAmortissement = New TextBox()
         txtPRF = New TextBox()
@@ -217,13 +219,15 @@ Partial Class FormGestionAppareils
         ' GroupBox3
         ' 
         GroupBox3.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
+        GroupBox3.Controls.Add(bttnAj)
+        GroupBox3.Controls.Add(bttnSup)
+        GroupBox3.Controls.Add(cmbFiltre)
+        GroupBox3.Controls.Add(BttnImpulsion)
+        GroupBox3.Controls.Add(Label15)
         GroupBox3.Controls.Add(txtFreq)
         GroupBox3.Controls.Add(Label14)
-        GroupBox3.Controls.Add(Label13)
         GroupBox3.Controls.Add(txtGain)
         GroupBox3.Controls.Add(cmbMode)
-        GroupBox3.Controls.Add(txtFiltreMax)
-        GroupBox3.Controls.Add(txtFiltreMin)
         GroupBox3.Controls.Add(txtEchelle)
         GroupBox3.Controls.Add(txtAmortissement)
         GroupBox3.Controls.Add(txtPRF)
@@ -246,6 +250,51 @@ Partial Class FormGestionAppareils
         GroupBox3.TabStop = False
         GroupBox3.Text = "Configuration de Réglages"
         ' 
+        ' bttnAj
+        ' 
+        bttnAj.Location = New Point(445, 95)
+        bttnAj.Name = "bttnAj"
+        bttnAj.Size = New Size(25, 24)
+        bttnAj.TabIndex = 25
+        bttnAj.Text = "+"
+        bttnAj.UseVisualStyleBackColor = True
+        ' 
+        ' bttnSup
+        ' 
+        bttnSup.Location = New Point(470, 95)
+        bttnSup.Name = "bttnSup"
+        bttnSup.Size = New Size(25, 24)
+        bttnSup.TabIndex = 24
+        bttnSup.Text = "-"
+        bttnSup.UseVisualStyleBackColor = True
+        ' 
+        ' cmbFiltre
+        ' 
+        cmbFiltre.FormattingEnabled = True
+        cmbFiltre.Location = New Point(391, 95)
+        cmbFiltre.Name = "cmbFiltre"
+        cmbFiltre.Size = New Size(48, 23)
+        cmbFiltre.TabIndex = 22
+        ' 
+        ' BttnImpulsion
+        ' 
+        BttnImpulsion.Anchor = AnchorStyles.None
+        BttnImpulsion.Location = New Point(663, 102)
+        BttnImpulsion.Name = "BttnImpulsion"
+        BttnImpulsion.Size = New Size(19, 23)
+        BttnImpulsion.TabIndex = 21
+        BttnImpulsion.Text = "⋮"
+        BttnImpulsion.UseVisualStyleBackColor = True
+        ' 
+        ' Label15
+        ' 
+        Label15.AutoSize = True
+        Label15.Location = New Point(525, 102)
+        Label15.Name = "Label15"
+        Label15.Size = New Size(68, 15)
+        Label15.TabIndex = 20
+        Label15.Text = "Impulsions:"
+        ' 
         ' txtFreq
         ' 
         txtFreq.Location = New Point(391, 124)
@@ -263,15 +312,6 @@ Partial Class FormGestionAppareils
         Label14.TabIndex = 18
         Label14.Text = "Fréquences (de 1à12):"
         ' 
-        ' Label13
-        ' 
-        Label13.AutoSize = True
-        Label13.Location = New Point(437, 70)
-        Label13.Name = "Label13"
-        Label13.Size = New Size(12, 15)
-        Label13.TabIndex = 17
-        Label13.Text = "-"
-        ' 
         ' txtGain
         ' 
         txtGain.Location = New Point(614, 36)
@@ -282,25 +322,11 @@ Partial Class FormGestionAppareils
         ' cmbMode
         ' 
         cmbMode.FormattingEnabled = True
-        cmbMode.Items.AddRange(New Object() {"Monocapteur", "Émetteur / Récepteur", "Transmission directe"})
-        cmbMode.Location = New Point(391, 94)
+        cmbMode.Items.AddRange(New Object() {"Monocapteur", "Émetteur / Récepteur", "Transmission directe", "Double"})
+        cmbMode.Location = New Point(391, 65)
         cmbMode.Name = "cmbMode"
         cmbMode.Size = New Size(104, 23)
         cmbMode.TabIndex = 15
-        ' 
-        ' txtFiltreMax
-        ' 
-        txtFiltreMax.Location = New Point(455, 67)
-        txtFiltreMax.Name = "txtFiltreMax"
-        txtFiltreMax.Size = New Size(40, 23)
-        txtFiltreMax.TabIndex = 14
-        ' 
-        ' txtFiltreMin
-        ' 
-        txtFiltreMin.Location = New Point(391, 65)
-        txtFiltreMin.Name = "txtFiltreMin"
-        txtFiltreMin.Size = New Size(40, 23)
-        txtFiltreMin.TabIndex = 13
         ' 
         ' txtEchelle
         ' 
@@ -326,7 +352,7 @@ Partial Class FormGestionAppareils
         ' cmbRedressement
         ' 
         cmbRedressement.FormattingEnabled = True
-        cmbRedressement.Items.AddRange(New Object() {"RF", "1/1 Onde", "1/2 Onde +", "1/2 Onde -"})
+        cmbRedressement.Items.AddRange(New Object() {"RF", "1/1 Onde", "1/2 Onde +", "1/2 Onde -", "Pleine Onde"})
         cmbRedressement.Location = New Point(113, 124)
         cmbRedressement.Name = "cmbRedressement"
         cmbRedressement.Size = New Size(104, 23)
@@ -362,7 +388,7 @@ Partial Class FormGestionAppareils
         ' Label10
         ' 
         Label10.AutoSize = True
-        Label10.Location = New Point(243, 97)
+        Label10.Location = New Point(243, 68)
         Label10.Name = "Label10"
         Label10.Size = New Size(44, 15)
         Label10.TabIndex = 5
@@ -371,7 +397,7 @@ Partial Class FormGestionAppareils
         ' Label9
         ' 
         Label9.AutoSize = True
-        Label9.Location = New Point(243, 65)
+        Label9.Location = New Point(243, 95)
         Label9.Name = "Label9"
         Label9.Size = New Size(39, 15)
         Label9.TabIndex = 4
@@ -481,8 +507,6 @@ Partial Class FormGestionAppareils
     Friend WithEvents txtEchelle As TextBox
     Friend WithEvents txtGain As TextBox
     Friend WithEvents cmbMode As ComboBox
-    Friend WithEvents txtFiltreMax As TextBox
-    Friend WithEvents txtFiltreMin As TextBox
     Friend WithEvents txtAmortissement As TextBox
     Friend WithEvents txtPRF As TextBox
     Friend WithEvents cmbRedressement As ComboBox
@@ -491,7 +515,11 @@ Partial Class FormGestionAppareils
     Friend WithEvents Label7 As Label
     Friend WithEvents Label6 As Label
     Friend WithEvents Label5 As Label
-    Friend WithEvents Label13 As Label
     Friend WithEvents txtFreq As TextBox
     Friend WithEvents Label14 As Label
+    Friend WithEvents Label15 As Label
+    Friend WithEvents BttnImpulsion As Button
+    Friend WithEvents cmbFiltre As ComboBox
+    Friend WithEvents bttnAj As Button
+    Friend WithEvents bttnSup As Button
 End Class

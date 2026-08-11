@@ -41,6 +41,31 @@ def apply_base_config(inst, cfg):
                 inst.write(f"{channel_impedance_cmd} {imp_val}")
                 time.sleep(0.05)
 
+            # Vertical position -- lets the idle/baseline level sit somewhere
+            # other than dead-center (e.g. near the top of the graticule).
+            # 0 (default if not set) keeps the old centered behavior.
+            channel_offset_cmd = get_command(cfg, "channel_offset", channel=1)
+            offset_val = base.get("channel_offset", 0)
+            if channel_offset_cmd and offset_val:
+                inst.write(f"{channel_offset_cmd} {offset_val}")
+                time.sleep(0.05)
+
+            # Acquisition averaging -- smooths out noise across repeated
+            # triggers. Only enabled if "acquisition_averages" is present
+            # in baseconfig; omitting it keeps the scope's normal (single-
+            # shot) acquisition mode untouched.
+            averages_val = base.get("acquisition_averages")
+            if averages_val:
+                acq_type_cmd = get_command(cfg, "acquisition_type")
+                if acq_type_cmd:
+                    inst.write(f"{acq_type_cmd} AVERages")
+                    time.sleep(0.05)
+
+                acq_averages_cmd = get_command(cfg, "acquisition_averages")
+                if acq_averages_cmd:
+                    inst.write(f"{acq_averages_cmd} {averages_val}")
+                    time.sleep(0.05)
+
             # Trigger settings
             trigger_source_cmd = get_command(cfg, "trigger_source")
             src_val = base.get("trigger_source", "CH1")

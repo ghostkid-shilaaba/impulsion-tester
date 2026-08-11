@@ -226,8 +226,8 @@ def execute_batch():
                 # plus demandée et V50 devient égale à Vcc mesurée à
                 # l'oscillo." This measurement has been dropped entirely.
 
-                result["v50_meas"] = vcc
-                result["vcc"] = vcc
+                result["v50_meas"] = vcc*100
+                result["vcc"] = vcc*100
                 result["td"] = td
                 result["tr"] = tr
 

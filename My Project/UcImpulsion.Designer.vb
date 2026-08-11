@@ -36,6 +36,7 @@ Partial Class UcImpulsion
         btnThreeDots = New Button()
         cmsAppareils = New ContextMenuStrip(components)
         Label3 = New Label()
+        BttnReg = New Button()
         TableLayoutPanel1.SuspendLayout()
         CType(dgvImpulsions, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
@@ -179,10 +180,20 @@ Partial Class UcImpulsion
         Label3.TabIndex = 13
         Label3.Text = "Vérifiez les réglages de l'oscilloscope."
         ' 
+        ' BttnReg
+        ' 
+        BttnReg.Location = New Point(645, 103)
+        BttnReg.Name = "BttnReg"
+        BttnReg.Size = New Size(69, 23)
+        BttnReg.TabIndex = 14
+        BttnReg.Text = "Réglages de base"
+        BttnReg.UseVisualStyleBackColor = True
+        ' 
         ' UcImpulsion
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
+        Controls.Add(BttnReg)
         Controls.Add(Label3)
         Controls.Add(btnThreeDots)
         Controls.Add(btnPrecedent)
@@ -216,5 +227,6 @@ Partial Class UcImpulsion
     Friend WithEvents btnThreeDots As Button
     Friend WithEvents cmsAppareils As ContextMenuStrip
     Friend WithEvents Label3 As Label
+    Friend WithEvents BttnReg As Button
 
 End Class

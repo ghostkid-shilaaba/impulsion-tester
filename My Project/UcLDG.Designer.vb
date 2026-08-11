@@ -39,6 +39,7 @@ Partial Class UcLDG
         cmsAppareils = New ContextMenuStrip(components)
         btnArreter = New Button()
         btnAcquerir = New Button()
+        Label6 = New Label()
         GroupBox1.SuspendLayout()
         TableLayoutPanel2.SuspendLayout()
         TableLayoutPanel1.SuspendLayout()
@@ -49,15 +50,15 @@ Partial Class UcLDG
         Label1.AutoSize = True
         Label1.Location = New Point(37, 77)
         Label1.Name = "Label1"
-        Label1.Size = New Size(287, 15)
+        Label1.Size = New Size(217, 15)
         Label1.TabIndex = 0
-        Label1.Text = "Régler le gain de l'appareil sur une valeur mini : 10 dB"
+        Label1.Text = "Régler le gain de l'appareil U.T sur 10 dB"
         ' 
         ' Label2
         ' 
         Label2.AutoSize = True
         Label2.Font = New Font("Segoe UI Semibold", 12F, FontStyle.Bold Or FontStyle.Underline, GraphicsUnit.Point, CByte(0))
-        Label2.Location = New Point(60, 35)
+        Label2.Location = New Point(37, 21)
         Label2.Name = "Label2"
         Label2.RightToLeft = RightToLeft.No
         Label2.Size = New Size(155, 21)
@@ -68,7 +69,7 @@ Partial Class UcLDG
         ' 
         GroupBox1.Controls.Add(TableLayoutPanel2)
         GroupBox1.Controls.Add(TableLayoutPanel1)
-        GroupBox1.Location = New Point(0, 112)
+        GroupBox1.Location = New Point(0, 224)
         GroupBox1.Name = "GroupBox1"
         GroupBox1.Size = New Size(996, 100)
         GroupBox1.TabIndex = 6
@@ -141,11 +142,11 @@ Partial Class UcLDG
         ' Label5
         ' 
         Label5.AutoSize = True
-        Label5.Location = New Point(37, 248)
+        Label5.Location = New Point(37, 117)
         Label5.Name = "Label5"
-        Label5.Size = New Size(246, 15)
+        Label5.Size = New Size(455, 15)
         Label5.TabIndex = 7
-        Label5.Text = "Régler le signal à 80% de la hauteur de l'écran"
+        Label5.Text = "Reglez la tension du generateur pour obtenir un signal a 40% de la hauteur de l'ecran."
         ' 
         ' BtnSuivant
         ' 
@@ -185,7 +186,7 @@ Partial Class UcLDG
         ' 
         ' btnArreter
         ' 
-        btnArreter.Location = New Point(242, 318)
+        btnArreter.Location = New Point(239, 407)
         btnArreter.Margin = New Padding(3, 2, 3, 2)
         btnArreter.Name = "btnArreter"
         btnArreter.Size = New Size(82, 22)
@@ -195,7 +196,7 @@ Partial Class UcLDG
         ' 
         ' btnAcquerir
         ' 
-        btnAcquerir.Location = New Point(133, 318)
+        btnAcquerir.Location = New Point(130, 407)
         btnAcquerir.Margin = New Padding(3, 2, 3, 2)
         btnAcquerir.Name = "btnAcquerir"
         btnAcquerir.Size = New Size(82, 22)
@@ -203,10 +204,20 @@ Partial Class UcLDG
         btnAcquerir.Text = "Acquerir"
         btnAcquerir.UseVisualStyleBackColor = True
         ' 
+        ' Label6
+        ' 
+        Label6.AutoSize = True
+        Label6.Location = New Point(37, 166)
+        Label6.Name = "Label6"
+        Label6.Size = New Size(199, 15)
+        Label6.TabIndex = 16
+        Label6.Text = "Régler le gain de l'attenuateur a 0 dB"
+        ' 
         ' UcLDG
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
+        Controls.Add(Label6)
         Controls.Add(btnArreter)
         Controls.Add(btnAcquerir)
         Controls.Add(btnThreeDots)
@@ -243,5 +254,6 @@ Partial Class UcLDG
     Friend WithEvents cmsAppareils As ContextMenuStrip
     Friend WithEvents btnArreter As Button
     Friend WithEvents btnAcquerir As Button
+    Friend WithEvents Label6 As Label
 
 End Class

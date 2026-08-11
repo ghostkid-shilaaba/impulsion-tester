@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
+Imports System.Linq
 
 Public Class LvaResultsForm
 
@@ -28,7 +29,15 @@ Public Class LvaResultsForm
 
         ' Fill the Data Grid
         If results IsNot Nothing AndAlso results.Count > 0 Then
-            dgvResults.DataSource = results
+
+            ' L'ordre de mesure reste 2, 1, 0, 4, 6, 8... (c'est l'ordre dans
+            ' lequel l'opérateur règle l'atténuateur pendant le test, ne pas
+            ' y toucher). On trie uniquement la liste utilisée pour
+            ' l'affichage, pour que le tableau final ressemble à
+            ' 0, 1, 2, 4, 6, 8, 12, 14, 20, 26.
+            Dim sortedResults As List(Of LvaResult) = results.OrderBy(Function(r) r.Db).ToList()
+
+            dgvResults.DataSource = sortedResults
 
             ' Configure column headers
             If dgvResults.Columns.Count > 0 Then

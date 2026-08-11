@@ -7,6 +7,7 @@
     Private vueLDG As UcLDG
     Private vueLVA As UcLVA
     Private vueRFA As UcRFA
+    Private vueNVB As UcNVB
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Initialiser la base de données locale
@@ -55,6 +56,7 @@
         End If
 
         pnlConteneur.Controls.Add(vueImpulsion)
+        vueImpulsion.RefreshForModel()   ' always reload for the currently selected ModeleId
     End Sub
 
     Private Sub RetournerA_UcConstat(sender As Object, e As EventArgs)
@@ -113,10 +115,22 @@
         If vueRFA Is Nothing Then
             vueRFA = New UcRFA()
             vueRFA.Dock = DockStyle.Fill
-            'AddHandler vueRFA.PrecedentClicked, AddressOf RetournerA_UcLVA
+
+            AddHandler vueRFA.BtnPrecedent.Click, AddressOf RetournerA_UcLVA
+            AddHandler vueRFA.BtnSuivant.Click, AddressOf ChargerUcNVB
         End If
 
         pnlConteneur.Controls.Add(vueRFA)
+    End Sub
+    Private Sub ChargerUcNVB(sender As Object, e As EventArgs)
+        pnlConteneur.Controls.Clear()
+
+        If vueNVB Is Nothing Then
+            vueNVB = New UcNVB()
+            vueNVB.Dock = DockStyle.Fill
+        End If
+
+        pnlConteneur.Controls.Add(vueNVB)
     End Sub
 
     Private Sub RetournerA_UcLVA(sender As Object, e As EventArgs)

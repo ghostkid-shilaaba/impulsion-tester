@@ -86,12 +86,15 @@ Public Class UcConstat
         cmbModeles.ValueMember = "modele_id"
     End Sub
 
+
     ' ==========================================
     ' 2. EVENTS
     ' ==========================================
     Public Event SuivantClique(sender As Object, e As EventArgs)
 
     Private Sub btnSuivant_Click(sender As Object, e As EventArgs) Handles btnSuivant.Click
+        UcLVA.ModeleId = CInt(cmbModeles.SelectedValue)
+        UcImpulsion.ModeleId = CInt(cmbModeles.SelectedValue)
         RaiseEvent SuivantClique(Me, e)
     End Sub
 

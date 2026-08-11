@@ -23,7 +23,6 @@ Partial Class UcLVA
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         components = New ComponentModel.Container()
-        Label5 = New Label()
         GroupBox1 = New GroupBox()
         TableLayoutPanel2 = New TableLayoutPanel()
         txtTension = New TextBox()
@@ -32,7 +31,6 @@ Partial Class UcLVA
         txtFreq = New TextBox()
         Label3 = New Label()
         Label2 = New Label()
-        Label1 = New Label()
         btnThreeDots = New Button()
         cmsAppareils = New ContextMenuStrip(components)
         BtnPrecedent = New Button()
@@ -44,20 +42,11 @@ Partial Class UcLVA
         TableLayoutPanel1.SuspendLayout()
         SuspendLayout()
         ' 
-        ' Label5
-        ' 
-        Label5.AutoSize = True
-        Label5.Location = New Point(36, 241)
-        Label5.Name = "Label5"
-        Label5.Size = New Size(246, 15)
-        Label5.TabIndex = 11
-        Label5.Text = "Régler le signal à 80% de la hauteur de l'écran"
-        ' 
         ' GroupBox1
         ' 
         GroupBox1.Controls.Add(TableLayoutPanel2)
         GroupBox1.Controls.Add(TableLayoutPanel1)
-        GroupBox1.Location = New Point(-1, 105)
+        GroupBox1.Location = New Point(3, 161)
         GroupBox1.Name = "GroupBox1"
         GroupBox1.Size = New Size(996, 100)
         GroupBox1.TabIndex = 10
@@ -139,15 +128,6 @@ Partial Class UcLVA
         Label2.TabIndex = 9
         Label2.Text = "LINEARITE VERTICAL D'AFFICHAGE"
         ' 
-        ' Label1
-        ' 
-        Label1.AutoSize = True
-        Label1.Location = New Point(36, 70)
-        Label1.Name = "Label1"
-        Label1.Size = New Size(287, 15)
-        Label1.TabIndex = 8
-        Label1.Text = "Régler le gain de l'appareil sur une valeur mini : 10 dB"
-        ' 
         ' btnThreeDots
         ' 
         btnThreeDots.Anchor = AnchorStyles.Top Or AnchorStyles.Right
@@ -162,7 +142,7 @@ Partial Class UcLVA
         ' cmsAppareils
         ' 
         cmsAppareils.Name = "cmsAppareils"
-        cmsAppareils.Size = New Size(61, 4)
+        cmsAppareils.Size = New Size(181, 26)
         ' 
         ' BtnPrecedent
         ' 
@@ -186,7 +166,7 @@ Partial Class UcLVA
         ' 
         ' btnArreter
         ' 
-        btnArreter.Location = New Point(228, 300)
+        btnArreter.Location = New Point(228, 355)
         btnArreter.Margin = New Padding(3, 2, 3, 2)
         btnArreter.Name = "btnArreter"
         btnArreter.Size = New Size(82, 22)
@@ -196,7 +176,7 @@ Partial Class UcLVA
         ' 
         ' btnAcquerir
         ' 
-        btnAcquerir.Location = New Point(119, 300)
+        btnAcquerir.Location = New Point(119, 355)
         btnAcquerir.Margin = New Padding(3, 2, 3, 2)
         btnAcquerir.Name = "btnAcquerir"
         btnAcquerir.Size = New Size(82, 22)
@@ -213,10 +193,8 @@ Partial Class UcLVA
         Controls.Add(BtnPrecedent)
         Controls.Add(BtnSuivant)
         Controls.Add(btnThreeDots)
-        Controls.Add(Label5)
         Controls.Add(GroupBox1)
         Controls.Add(Label2)
-        Controls.Add(Label1)
         Name = "UcLVA"
         Size = New Size(995, 527)
         GroupBox1.ResumeLayout(False)
@@ -227,8 +205,6 @@ Partial Class UcLVA
         ResumeLayout(False)
         PerformLayout()
     End Sub
-
-    Friend WithEvents Label5 As Label
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents TableLayoutPanel2 As TableLayoutPanel
     Friend WithEvents txtTension As TextBox
@@ -237,7 +213,6 @@ Partial Class UcLVA
     Friend WithEvents txtFreq As TextBox
     Friend WithEvents Label3 As Label
     Friend WithEvents Label2 As Label
-    Friend WithEvents Label1 As Label
     Friend WithEvents btnThreeDots As Button
     Friend WithEvents cmsAppareils As ContextMenuStrip
     Friend WithEvents BtnPrecedent As Button
